@@ -6,9 +6,9 @@
   const LAUNCHER_PATH = '/launcher.html';
 
   // Title and icon shown on the new tab.
-  const TAB_TITLE = 'Study Hub';
+  const TAB_TITLE = 'Untitled presentation';
   const TAB_ICON =
-    "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230f766e'/%3E%3Cpath d='M16 46V20l16 18 16-18v26' fill='none' stroke='white' stroke-width='6' stroke-linejoin='round' stroke-linecap='round'/%3E%3C/svg%3E";
+    "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23475569'/%3E%3Crect x='12' y='18' width='40' height='28' rx='3' fill='none' stroke='white' stroke-width='4'/%3E%3Cpath d='M22 38l7-8 6 5 7-9' fill='none' stroke='white' stroke-width='4' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E";
 
   // Trigger: Shift + Q
   const TRIGGER_CODE = 'KeyQ';
