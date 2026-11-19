@@ -1,0 +1,224 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Study Hub</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230f766e'/%3E%3Cpath d='M16 46V20l16 18 16-18v26' fill='none' stroke='white' stroke-width='6' stroke-linejoin='round' stroke-linecap='round'/%3E%3C/svg%3E">
+
+  <!-- Same scripts the stock Scramjet-App page loads -->
+  <script src="/scram/scramjet.all.js"></script>
+  <script src="/baremux/index.js"></script>
+  <script src="register-sw.js" defer></script>
+
+  <style>
+    :root {
+      --bg: #0e1424;
+      --panel: #161e33;
+      --line: #263250;
+      --text: #e8ecf6;
+      --muted: #93a0bd;
+      --accent: #2dd4bf;
+      --accent-ink: #062b27;
+      --radius: 14px;
+      --sans: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }
+    * { box-sizing: border-box; }
+    html, body { height: 100%; }
+    body { margin: 0; background: var(--bg); color: var(--text); font-family: var(--sans); line-height: 1.5; }
+
+    .shell { width: min(1080px, 92vw); margin: 0 auto; padding: 40px 0 60px; }
+    header h1 { margin: 0 0 4px; font-size: clamp(1.6rem, 3.5vw, 2.2rem); letter-spacing: -0.02em; }
+    header p { margin: 0 0 28px; color: var(--muted); }
+
+    #grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 14px; }
+    .tile {
+      font: inherit; text-align: left; color: inherit; cursor: pointer;
+      background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius);
+      padding: 18px; display: flex; flex-direction: column; gap: 6px;
+      transition: transform .12s ease, border-color .12s ease;
+    }
+    .tile:hover, .tile:focus-visible { transform: translateY(-2px); border-color: var(--accent); outline: none; }
+    .tile .name { font-weight: 650; font-size: 1.05rem; }
+    .tile .note { color: var(--muted); font-size: 0.9rem; }
+    .tile .host { color: var(--accent); font-size: 0.8rem; margin-top: auto; padding-top: 8px; }
+
+    #status { min-height: 1.5em; margin-top: 22px; color: var(--muted); font-size: 0.92rem; white-space: pre-wrap; }
+    #status.error { color: #fca5a5; }
+
+    /* Full-window viewer */
+    #viewer { position: fixed; inset: 0; display: flex; flex-direction: column; background: var(--bg); z-index: 5; }
+    #viewer[hidden] { display: none; }
+    .bar { display: flex; align-items: center; gap: 10px; padding: 8px 12px; background: var(--panel); border-bottom: 1px solid var(--line); }
+    .bar .title { font-weight: 600; margin-right: auto; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .bar button {
+      font: inherit; font-size: 0.88rem; color: var(--text); background: transparent;
+      border: 1px solid var(--line); border-radius: 8px; padding: 6px 12px; cursor: pointer;
+    }
+    .bar button:hover { border-color: var(--accent); }
+    .bar button.close { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); font-weight: 650; }
+    #stage { flex: 1; min-height: 0; background: #fff; }
+    #stage iframe { width: 100%; height: 100%; border: 0; display: block; }
+
+    @media (prefers-reduced-motion: reduce) { .tile { transition: none; } }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <header>
+      <h1>Study Hub</h1>
+      <p>Pick something to open.</p>
+    </header>
+    <div id="grid" role="list"></div>
+    <div id="status" role="status" aria-live="polite"></div>
+  </div>
+
+  <div id="viewer" hidden>
+    <div class="bar">
+      <span class="title" id="viewer-title"></span>
+      <button type="button" id="reload">Reload</button>
+      <button type="button" id="full">Fullscreen</button>
+      <button type="button" class="close" id="close">Close</button>
+    </div>
+    <div id="stage"></div>
+  </div>
+
+  <script>
+    'use strict';
+
+    // ---------------------------------------------------------------
+    // YOUR BUTTONS. Edit this list: one entry per button.
+    // name: label on the button   url: full address (https://...)
+    // note: short line under the name (optional)
+    // These three are only SAMPLES. Replace them with your own sites.
+    // ---------------------------------------------------------------
+    const SITES = [
+      { name: 'DuckDuckGo', url: 'https://duckduckgo.com/', note: 'Search' },
+      { name: 'Wikipedia', url: 'https://www.wikipedia.org/', note: 'Encyclopedia' },
+      { name: 'Chess.com', url: 'https://www.chess.com/', note: 'Play chess' },
+    ];
+
+    // ---- Proxy setup: mirrors the stock Scramjet-App public/index.js ----
+    const { ScramjetController } = $scramjetLoadController();
+    const scramjet = new ScramjetController({
+      files: {
+        wasm: '/scram/scramjet.wasm.wasm',
+        all: '/scram/scramjet.all.js',
+        sync: '/scram/scramjet.sync.js',
+      },
+    });
+    scramjet.init();
+
+    const connection = new BareMux.BareMuxConnection('/baremux/worker.js');
+
+    let ready = null;
+    function prepareProxy() {
+      if (!ready) {
+        ready = (async () => {
+          await registerSW(); // defined by register-sw.js
+          const wispUrl =
+            (location.protocol === 'https:' ? 'wss' : 'ws') + '://' + location.host + '/wisp/';
+          if ((await connection.getTransport()) !== '/libcurl/index.mjs') {
+            await connection.setTransport('/libcurl/index.mjs', [{ websocket: wispUrl }]);
+          }
+        })().catch((err) => {
+          ready = null; // allow a retry on the next click
+          throw err;
+        });
+      }
+      return ready;
+    }
+
+    // ---- UI ----
+    const grid = document.getElementById('grid');
+    const statusEl = document.getElementById('status');
+    const viewer = document.getElementById('viewer');
+    const viewerTitle = document.getElementById('viewer-title');
+    const stage = document.getElementById('stage');
+    let current = null; // { frame, url }
+
+    function setStatus(text, isError) {
+      statusEl.textContent = text;
+      statusEl.classList.toggle('error', Boolean(isError));
+    }
+
+    function isWebUrl(value) {
+      try {
+        const u = new URL(value);
+        return u.protocol === 'https:' || u.protocol === 'http:';
+      } catch (_) {
+        return false;
+      }
+    }
+
+    function closeViewer() {
+      if (current) {
+        current.frame.frame.remove();
+        current = null;
+      }
+      viewer.hidden = true;
+      if (document.fullscreenElement) document.exitFullscreen().catch(() => {});
+    }
+
+    async function openSite(site) {
+      setStatus('Loading ' + site.name + '...');
+      try {
+        await prepareProxy();
+      } catch (err) {
+        setStatus('Could not start the proxy: ' + String(err), true);
+        return;
+      }
+      closeViewer();
+      const frame = scramjet.createFrame();
+      frame.frame.title = site.name;
+      stage.appendChild(frame.frame);
+      current = { frame, url: site.url };
+      viewerTitle.textContent = site.name;
+      viewer.hidden = false;
+      setStatus('');
+      frame.go(site.url);
+    }
+
+    SITES.forEach((site) => {
+      if (!isWebUrl(site.url)) {
+        console.warn('Skipping entry with a bad url:', site);
+        return;
+      }
+      const tile = document.createElement('button');
+      tile.type = 'button';
+      tile.className = 'tile';
+      tile.setAttribute('role', 'listitem');
+
+      const name = document.createElement('span');
+      name.className = 'name';
+      name.textContent = site.name;
+      tile.appendChild(name);
+
+      if (site.note) {
+        const note = document.createElement('span');
+        note.className = 'note';
+        note.textContent = site.note;
+        tile.appendChild(note);
+      }
+
+      const host = document.createElement('span');
+      host.className = 'host';
+      host.textContent = new URL(site.url).hostname;
+      tile.appendChild(host);
+
+      tile.addEventListener('click', () => openSite(site));
+      grid.appendChild(tile);
+    });
+
+    document.getElementById('close').addEventListener('click', closeViewer);
+    document.getElementById('reload').addEventListener('click', () => {
+      if (current) current.frame.go(current.url);
+    });
+    document.getElementById('full').addEventListener('click', () => {
+      if (current && current.frame.frame.requestFullscreen) {
+        current.frame.frame.requestFullscreen().catch(() => {});
+      }
+    });
+  </script>
+</body>
+</html>
