@@ -172,6 +172,7 @@
       const frame = scramjet.createFrame();
       frame.frame.title = site.name;
       stage.appendChild(frame.frame);
+      frame.frame.addEventListener('load', () => attachPanicKey(frame.frame));
       current = { frame, url: site.url };
       viewerTitle.textContent = site.name;
       viewer.hidden = false;
@@ -209,6 +210,38 @@
       tile.addEventListener('click', () => openSite(site));
       grid.appendChild(tile);
     });
+
+    // ---- Shift+Q: leave the launcher and go to PANIC_URL ----
+    const PANIC_URL = 'https://classroom.google.com/';
+
+    function isTypingTarget(el) {
+      if (!el || el.nodeType !== 1) return false; // nodeType check works across frames
+      const tag = el.tagName;
+      return el.isContentEditable || tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT';
+    }
+
+    function onPanicKey(event) {
+      if (event.code !== 'KeyQ' || !event.shiftKey) return;
+      if (event.ctrlKey || event.altKey || event.metaKey || event.repeat) return;
+      if (isTypingTarget(event.target)) return;
+      event.preventDefault();
+      try {
+        window.top.location.replace(PANIC_URL); // the whole tab, not just this frame
+      } catch (_) {
+        window.location.replace(PANIC_URL);
+      }
+    }
+
+    // Key presses inside the proxied page do not reach this window, so listen there too.
+    function attachPanicKey(iframe) {
+      try {
+        iframe.contentWindow.addEventListener('keydown', onPanicKey);
+      } catch (_) {
+        /* frame not reachable; the launcher-level listener still works */
+      }
+    }
+
+    window.addEventListener('keydown', onPanicKey);
 
     document.getElementById('close').addEventListener('click', closeViewer);
     document.getElementById('reload').addEventListener('click', () => {
