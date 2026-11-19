@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Meridian Study Hub | Revision guides and study skills</title>
+  <meta name="description" content="Clear revision guides, study techniques and a focus timer for secondary and sixth-form students.">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230f766e'/%3E%3Cpath d='M16 46V20l16 18 16-18v26' fill='none' stroke='white' stroke-width='6' stroke-linejoin='round' stroke-linecap='round'/%3E%3C/svg%3E">
+  <style>
+    :root {
+      --ink: #14213d;
+      --ink-soft: #4a5568;
+      --paper: #faf8f4;
+      --card: #ffffff;
+      --line: #e5e1d8;
+      --accent: #0f766e;
+      --accent-dark: #0b5a54;
+      --accent-tint: #e3f2f0;
+      --radius: 14px;
+      --serif: ui-serif, Georgia, "Times New Roman", serif;
+      --sans: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      font-family: var(--sans);
+      color: var(--ink);
+      background: var(--paper);
+      line-height: 1.6;
+    }
+    a { color: inherit; }
+    .wrap { width: min(1120px, 92vw); margin-inline: auto; }
+
+    /* Header */
+    header.site {
+      position: sticky; top: 0; z-index: 10;
+      background: rgba(250, 248, 244, 0.92);
+      backdrop-filter: blur(8px);
+      border-bottom: 1px solid var(--line);
+    }
+    .bar { display: flex; align-items: center; gap: 28px; min-height: 68px; }
+    .brand { display: flex; align-items: center; gap: 10px; text-decoration: none; font-family: var(--serif); font-size: 1.25rem; font-weight: 700; letter-spacing: -0.01em; }
+    .brand svg { width: 32px; height: 32px; }
+    nav.main { display: flex; gap: 22px; margin-left: auto; }
+    nav.main a { text-decoration: none; font-size: 0.95rem; color: var(--ink-soft); padding: 6px 0; border-bottom: 2px solid transparent; }
+    nav.main a:hover { color: var(--ink); border-color: var(--accent); }
+    .search { position: relative; }
+    .search input {
+      font: inherit; font-size: 0.9rem; width: 190px;
+      padding: 8px 12px; border: 1px solid var(--line); border-radius: 999px;
+      background: var(--card); color: var(--ink);
+    }
+    .search input:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
+
+    /* Hero */
+    .hero { padding: 84px 0 64px; }
+    .eyebrow { display: inline-block; font-size: 0.8rem; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--accent); background: var(--accent-tint); padding: 5px 12px; border-radius: 999px; }
+    .hero h1 { font-family: var(--serif); font-size: clamp(2.2rem, 5vw, 3.6rem); line-height: 1.1; letter-spacing: -0.02em; margin: 20px 0 18px; max-width: 18ch; }
+    .hero p.lead { font-size: 1.15rem; color: var(--ink-soft); max-width: 56ch; margin: 0 0 30px; }
+    .actions { display: flex; gap: 12px; flex-wrap: wrap; }
+    .btn { font: inherit; font-weight: 600; font-size: 0.95rem; padding: 12px 22px; border-radius: 10px; border: 1px solid transparent; cursor: pointer; text-decoration: none; display: inline-block; }
+    .btn.primary { background: var(--accent); color: #fff; }
+    .btn.primary:hover { background: var(--accent-dark); }
+    .btn.ghost { background: transparent; border-color: var(--ink); color: var(--ink); }
+    .btn.ghost:hover { background: var(--ink); color: #fff; }
+
+    /* Sections */
+    section { padding: 56px 0; }
+    section h2 { font-family: var(--serif); font-size: clamp(1.6rem, 3vw, 2.1rem); letter-spacing: -0.015em; margin: 0 0 8px; }
+    section .sub { color: var(--ink-soft); margin: 0 0 32px; max-width: 60ch; }
+
+    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 20px; }
+    .card { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); padding: 24px; transition: transform .15s ease, box-shadow .15s ease; }
+    .card:hover { transform: translateY(-2px); box-shadow: 0 10px 28px rgba(20, 33, 61, 0.08); }
+    .card .icon { width: 44px; height: 44px; border-radius: 12px; background: var(--accent-tint); display: grid; place-items: center; margin-bottom: 16px; }
+    .card .icon svg { width: 24px; height: 24px; stroke: var(--accent); fill: none; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+    .card h3 { margin: 0 0 6px; font-size: 1.1rem; }
+    .card p { margin: 0 0 14px; color: var(--ink-soft); font-size: 0.95rem; }
+    .card a.more { font-size: 0.9rem; font-weight: 600; color: var(--accent); text-decoration: none; }
+    .card a.more:hover { text-decoration: underline; }
+
+    /* Feature article */
+    .feature { display: grid; grid-template-columns: 1.3fr 1fr; gap: 40px; align-items: start; }
+    .feature article { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); padding: 34px; }
+    .feature article h3 { font-family: var(--serif); font-size: 1.6rem; margin: 10px 0 12px; letter-spacing: -0.01em; }
+    .feature article p { color: var(--ink-soft); margin: 0 0 14px; }
+    .feature article ol { color: var(--ink-soft); padding-left: 1.2rem; margin: 0; }
+    .feature article li { margin-bottom: 8px; }
+
+    /* Timer */
+    .timer { background: var(--ink); color: #fff; border-radius: var(--radius); padding: 32px; text-align: center; position: sticky; top: 92px; }
+    .timer h3 { margin: 0 0 4px; font-family: var(--serif); font-size: 1.3rem; }
+    .timer p { margin: 0 0 18px; color: #c5cbd8; font-size: 0.92rem; }
+    .timer .time { font-family: ui-monospace, "SF Mono", Consolas, monospace; font-size: 3.4rem; letter-spacing: 0.02em; margin: 6px 0 20px; font-variant-numeric: tabular-nums; }
+    .timer .modes { display: flex; justify-content: center; gap: 8px; margin-bottom: 20px; }
+    .timer .modes button { font: inherit; font-size: 0.85rem; color: #fff; background: transparent; border: 1px solid rgba(255,255,255,.3); border-radius: 999px; padding: 6px 14px; cursor: pointer; }
+    .timer .modes button[aria-pressed="true"] { background: #fff; color: var(--ink); border-color: #fff; }
+    .timer .btn.primary { background: #2dd4bf; color: var(--ink); }
+    .timer .btn.primary:hover { background: #5eead4; }
+    .timer .btn.ghost { border-color: rgba(255,255,255,.4); color: #fff; }
+    .timer .btn.ghost:hover { background: #fff; color: var(--ink); }
+    .timer .row { display: flex; gap: 10px; justify-content: center; }
+
+    /* Tips */
+    .tips { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 20px; }
+    .tip { border-top: 3px solid var(--accent); padding-top: 16px; }
+    .tip h3 { margin: 0 0 6px; font-size: 1.05rem; }
+    .tip p { margin: 0; color: var(--ink-soft); font-size: 0.95rem; }
+
+    footer.site { border-top: 1px solid var(--line); margin-top: 40px; padding: 36px 0 48px; color: var(--ink-soft); font-size: 0.9rem; }
+    footer.site .cols { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 18px; }
+    footer.site a { text-decoration: none; margin-right: 18px; }
+    footer.site a:hover { text-decoration: underline; }
+
+    /* Notice shown only if pop-ups are blocked */
+    #notice { position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%) translateY(20px); opacity: 0; pointer-events: none; background: var(--ink); color: #fff; padding: 12px 18px; border-radius: 10px; font-size: 0.9rem; transition: opacity .2s ease, transform .2s ease; max-width: 90vw; }
+    #notice.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+    @media (max-width: 860px) {
+      nav.main { display: none; }
+      .search { margin-left: auto; }
+      .feature { grid-template-columns: 1fr; }
+      .timer { position: static; }
+      .hero { padding-top: 56px; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      html { scroll-behavior: auto; }
+      .card, #notice { transition: none; }
+    }
+  </style>
+</head>
+<body>
+  <header class="site">
+    <div class="wrap bar">
+      <a class="brand" href="#top" aria-label="Meridian Study Hub home">
+        <svg viewBox="0 0 64 64" aria-hidden="true"><rect width="64" height="64" rx="14" fill="#0f766e"/><path d="M16 46V20l16 18 16-18v26" fill="none" stroke="#fff" stroke-width="6" stroke-linejoin="round" stroke-linecap="round"/></svg>
+        Meridian
+      </a>
+      <nav class="main" aria-label="Main">
+        <a href="#subjects">Subjects</a>
+        <a href="#guide">Study guide</a>
+        <a href="#focus">Focus timer</a>
+        <a href="#tips">Study skills</a>
+      </nav>
+      <form class="search" role="search" onsubmit="return false">
+        <input type="search" placeholder="Search subjects" aria-label="Search subjects" id="q">
+      </form>
+    </div>
+  </header>
+
+  <main id="top">
+    <div class="wrap hero">
+      <span class="eyebrow">Revision resources</span>
+      <h1>Study smarter, one topic at a time.</h1>
+      <p class="lead">Clear guides, proven study techniques and a simple focus timer for secondary and sixth-form students. No accounts, no clutter.</p>
+      <div class="actions">
+        <a class="btn primary" href="#subjects">Browse subjects</a>
+        <a class="btn ghost" href="#focus">Start a focus session</a>
+      </div>
+    </div>
+
+    <section id="subjects">
+      <div class="wrap">
+        <h2>Subjects</h2>
+        <p class="sub">Concise summaries organised by topic, written to be read in one sitting.</p>
+        <div class="grid" id="subject-grid">
+          <div class="card" data-name="mathematics algebra geometry statistics">
+            <div class="icon"><svg viewBox="0 0 24 24"><path d="M5 12h14M12 5v14"/><circle cx="12" cy="12" r="9"/></svg></div>
+            <h3>Mathematics</h3>
+            <p>Algebra, geometry, trigonometry and statistics, with worked examples for every method.</p>
+            <a class="more" href="#guide">View topics</a>
+          </div>
+          <div class="card" data-name="biology cells genetics ecology">
+            <div class="icon"><svg viewBox="0 0 24 24"><path d="M12 3c4 3 6 6 6 9a6 6 0 0 1-12 0c0-3 2-6 6-9z"/><path d="M12 21v-9"/></svg></div>
+            <h3>Biology</h3>
+            <p>Cell structure, genetics, human biology and ecosystems explained step by step.</p>
+            <a class="more" href="#guide">View topics</a>
+          </div>
+          <div class="card" data-name="chemistry atoms bonding reactions">
+            <div class="icon"><svg viewBox="0 0 24 24"><path d="M9 3h6M10 3v6l-5 9a2 2 0 0 0 2 3h10a2 2 0 0 0 2-3l-5-9V3"/></svg></div>
+            <h3>Chemistry</h3>
+            <p>Atomic structure, bonding, reactions and the periodic table in plain language.</p>
+            <a class="more" href="#guide">View topics</a>
+          </div>
+          <div class="card" data-name="physics forces energy waves electricity">
+            <div class="icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="2"/><ellipse cx="12" cy="12" rx="10" ry="4.5"/><ellipse cx="12" cy="12" rx="10" ry="4.5" transform="rotate(60 12 12)"/><ellipse cx="12" cy="12" rx="10" ry="4.5" transform="rotate(120 12 12)"/></svg></div>
+            <h3>Physics</h3>
+            <p>Forces, energy, waves and electricity, with the key equations gathered in one place.</p>
+            <a class="more" href="#guide">View topics</a>
+          </div>
+          <div class="card" data-name="history source analysis essays">
+            <div class="icon"><svg viewBox="0 0 24 24"><path d="M4 20V8l8-5 8 5v12"/><path d="M9 20v-6h6v6"/></svg></div>
+            <h3>History</h3>
+            <p>Timelines, source analysis and essay structure for the major periods you will meet.</p>
+            <a class="more" href="#guide">View topics</a>
+          </div>
+          <div class="card" data-name="english literature language essays">
+            <div class="icon"><svg viewBox="0 0 24 24"><path d="M4 5a2 2 0 0 1 2-2h13v16H6a2 2 0 0 0-2 2z"/><path d="M4 21V5"/></svg></div>
+            <h3>English</h3>
+            <p>Close reading, quotation use and planning techniques for language and literature.</p>
+            <a class="more" href="#guide">View topics</a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="guide">
+      <div class="wrap feature">
+        <article>
+          <span class="eyebrow">Featured study guide</span>
+          <h3>The spacing effect: why shorter, repeated sessions beat cramming</h3>
+          <p>Memory research has repeatedly found that revising material in several short sessions spread over days or weeks leads to better long-term recall than the same total time spent in one block. Each time you return to a topic, retrieving it takes a little effort, and that effort strengthens the memory.</p>
+          <p>A simple way to apply it:</p>
+          <ol>
+            <li>Learn the topic and write a short set of questions about it.</li>
+            <li>Test yourself the next day without looking at your notes.</li>
+            <li>Test again after three days, then a week, then two weeks.</li>
+            <li>Spend the most time on the questions you got wrong.</li>
+          </ol>
+        </article>
+
+        <aside class="timer" id="focus" aria-labelledby="timer-title">
+          <h3 id="timer-title">Focus timer</h3>
+          <p>Work in focused blocks, then rest.</p>
+          <div class="modes" role="group" aria-label="Timer mode">
+            <button type="button" data-min="25" aria-pressed="true">Focus</button>
+            <button type="button" data-min="5" aria-pressed="false">Short break</button>
+            <button type="button" data-min="15" aria-pressed="false">Long break</button>
+          </div>
+          <div class="time" id="time" role="timer" aria-live="off">25:00</div>
+          <div class="row">
+            <button class="btn primary" id="start" type="button">Start</button>
+            <button class="btn ghost" id="reset" type="button">Reset</button>
+          </div>
+        </aside>
+      </div>
+    </section>
+
+    <section id="tips">
+      <div class="wrap">
+        <h2>Study skills</h2>
+        <p class="sub">Small habits that make revision more effective.</p>
+        <div class="tips">
+          <div class="tip"><h3>Test yourself</h3><p>Closing the book and recalling a topic from memory works better than re-reading it.</p></div>
+          <div class="tip"><h3>Mix topics</h3><p>Alternating between related topics in one session builds the skill of choosing the right method.</p></div>
+          <div class="tip"><h3>Plan the week</h3><p>Give each subject a regular slot so revision becomes a routine rather than a decision.</p></div>
+          <div class="tip"><h3>Rest properly</h3><p>Sleep and short breaks consolidate what you have learned. Protect both during exam season.</p></div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site">
+    <div class="wrap cols">
+      <div>&copy; <span id="year"></span> Meridian Study Hub</div>
+      <div><a href="#top">Back to top</a><a href="#subjects">Subjects</a><a href="#tips">Study skills</a></div>
+    </div>
+  </footer>
+
+  <div id="notice" role="status" aria-live="polite"></div>
+
+  <script>
+    // Footer year
+    document.getElementById('year').textContent = new Date().getFullYear();
+
+    // Subject filter
+    (function () {
+      var input = document.getElementById('q');
+      var cards = Array.prototype.slice.call(document.querySelectorAll('#subject-grid .card'));
+      input.addEventListener('input', function () {
+        var term = input.value.trim().toLowerCase();
+        cards.forEach(function (card) {
+          var hay = (card.dataset.name + ' ' + card.textContent).toLowerCase();
+          card.style.display = !term || hay.indexOf(term) !== -1 ? '' : 'none';
+        });
+      });
+    })();
+
+    // Focus timer
+    (function () {
+      var display = document.getElementById('time');
+      var startBtn = document.getElementById('start');
+      var resetBtn = document.getElementById('reset');
+      var modeBtns = Array.prototype.slice.call(document.querySelectorAll('.modes button'));
+      var total = 25 * 60, left = total, handle = null;
+
+      function render() {
+        var m = Math.floor(left / 60), s = left % 60;
+        display.textContent = String(m).padStart(2, '0') + ':' + String(s).padStart(2, '0');
+        document.title = handle ? display.textContent + ' | Meridian Study Hub' : 'Meridian Study Hub | Revision guides and study skills';
+      }
+      function stop() { clearInterval(handle); handle = null; startBtn.textContent = left === total ? 'Start' : 'Resume'; render(); }
+      function tick() {
+        left -= 1;
+        if (left <= 0) { left = 0; stop(); startBtn.textContent = 'Start'; left = total; render(); return; }
+        render();
+      }
+      startBtn.addEventListener('click', function () {
+        if (handle) { stop(); return; }
+        handle = setInterval(tick, 1000);
+        startBtn.textContent = 'Pause';
+      });
+      resetBtn.addEventListener('click', function () { clearInterval(handle); handle = null; left = total; startBtn.textContent = 'Start'; render(); });
+      modeBtns.forEach(function (b) {
+        b.addEventListener('click', function () {
+          modeBtns.forEach(function (o) { o.setAttribute('aria-pressed', String(o === b)); });
+          clearInterval(handle); handle = null;
+          total = Number(b.dataset.min) * 60; left = total;
+          startBtn.textContent = 'Start'; render();
+        });
+      });
+      render();
+    })();
+  </script>
+  <script src="/cloak.js"></script>
+</body>
+</html>
