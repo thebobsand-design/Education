@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Study Hub</title>
-  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230f766e'/%3E%3Cpath d='M16 46V20l16 18 16-18v26' fill='none' stroke='white' stroke-width='6' stroke-linejoin='round' stroke-linecap='round'/%3E%3C/svg%3E">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23475569'/%3E%3Crect x='12' y='18' width='40' height='28' rx='3' fill='none' stroke='white' stroke-width='4'/%3E%3Cpath d='M22 38l7-8 6 5 7-9' fill='none' stroke='white' stroke-width='4' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
 
   <!-- Same scripts the stock Scramjet-App page loads -->
   <script src="/scram/scramjet.all.js"></script>
@@ -13,69 +13,365 @@
 
   <style>
     :root {
-      --bg: #0e1424;
-      --panel: #161e33;
-      --line: #263250;
-      --text: #e8ecf6;
-      --muted: #93a0bd;
-      --accent: #2dd4bf;
-      --accent-ink: #062b27;
-      --radius: 14px;
-      --sans: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      --bg: #17171a;
+      --panel: #212126;
+      --panel-2: #2a2a31;
+      --line: #36363e;
+      --text: #ecebe6;
+      --muted: #9b9a93;
+      --accent: #f5c542;
+      --accent-ink: #231c05;
+      --danger: #ff8f80;
+      --red: #b83a2c;
     }
     * { box-sizing: border-box; }
     html, body { height: 100%; }
-    body { margin: 0; background: var(--bg); color: var(--text); font-family: var(--sans); line-height: 1.5; }
-
-    .shell { width: min(1080px, 92vw); margin: 0 auto; padding: 40px 0 60px; }
-    header h1 { margin: 0 0 4px; font-size: clamp(1.6rem, 3.5vw, 2.2rem); letter-spacing: -0.02em; }
-    header p { margin: 0 0 28px; color: var(--muted); }
-
-    #grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 14px; }
-    .tile {
-      font: inherit; text-align: left; color: inherit; cursor: pointer;
-      background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius);
-      padding: 18px; display: flex; flex-direction: column; gap: 6px;
-      transition: transform .12s ease, border-color .12s ease;
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font: 15px/1.5 "Segoe UI", Tahoma, Arial, sans-serif;
     }
-    .tile:hover, .tile:focus-visible { transform: translateY(-2px); border-color: var(--accent); outline: none; }
-    .tile .name { font-weight: 650; font-size: 1.05rem; }
-    .tile .note { color: var(--muted); font-size: 0.9rem; }
-    .tile .host { color: var(--accent); font-size: 0.8rem; margin-top: auto; padding-top: 8px; }
+    button { font: inherit; }
+    [hidden] { display: none !important; }
 
-    #status { min-height: 1.5em; margin-top: 22px; color: var(--muted); font-size: 0.92rem; white-space: pre-wrap; }
-    #status.error { color: #fca5a5; }
+    .shell { width: min(1100px, 94vw); margin: 0 auto; padding: 30px 0 40px; }
 
-    /* Full-window viewer */
+    /* ---------- header ---------- */
+    header {
+      display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between;
+      gap: 14px; padding-bottom: 16px; border-bottom: 1px solid var(--line);
+    }
+    header h1 {
+      margin: 0; font: 700 26px/1.1 "Trebuchet MS", "Segoe UI", sans-serif;
+      user-select: none; cursor: default;
+    }
+    header h1::before {
+      content: ""; display: inline-block; width: 11px; height: 11px; margin-right: 10px;
+      background: var(--accent); vertical-align: 3px;
+    }
+    header .sub { margin: 4px 0 0 21px; color: var(--muted); font-size: 13px; }
+    .tools { display: flex; align-items: center; gap: 10px; }
+    #search {
+      font: inherit; font-size: 14px; width: 220px; padding: 7px 10px;
+      color: var(--text); background: var(--panel); border: 1px solid var(--line); border-radius: 4px;
+    }
+    #search::placeholder { color: #75746e; }
+    #search:focus { outline: none; border-color: var(--accent); }
+
+    .btn {
+      font-size: 14px; padding: 7px 13px; color: var(--text); background: var(--panel);
+      border: 1px solid var(--line); border-radius: 4px; cursor: pointer; white-space: nowrap;
+    }
+    .btn:hover { border-color: var(--muted); }
+    .btn.primary { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); font-weight: 700; }
+    .btn.small { font-size: 13px; padding: 4px 10px; }
+    .btn:disabled { opacity: .55; cursor: default; }
+
+    .filters { display: flex; align-items: center; gap: 6px; margin: 14px 0 16px; }
+    .chip {
+      font-size: 13px; padding: 4px 12px; color: var(--muted); background: transparent;
+      border: 1px solid var(--line); border-radius: 999px; cursor: pointer;
+    }
+    .chip:hover { color: var(--text); }
+    .chip[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); font-weight: 700; }
+    #count { margin-left: auto; color: var(--muted); font-size: 13px; }
+
+    /* ---------- polls (user side) ---------- */
+    .pollbox {
+      background: var(--panel); border: 1px solid var(--line); border-left: 3px solid var(--accent);
+      border-radius: 6px; padding: 12px 14px; margin-top: 16px; max-width: 560px;
+    }
+    .kicker { font-size: 11px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--accent); }
+    .pollbox .q { font-weight: 700; margin: 2px 0 10px; }
+    .opts { display: flex; flex-wrap: wrap; gap: 8px; }
+    .result {
+      position: relative; display: flex; justify-content: space-between; gap: 10px;
+      padding: 5px 10px; margin-bottom: 5px; border-radius: 4px; background: var(--bg);
+      overflow: hidden; font-size: 14px;
+    }
+    .result .fill { position: absolute; top: 0; bottom: 0; left: 0; background: rgba(245, 197, 66, .2); }
+    .result span { position: relative; }
+    .result.mine { outline: 1px solid var(--accent); }
+    .result .pct { color: var(--muted); font-size: 13px; }
+    .pollbox small, .poll-meta { color: var(--muted); font-size: 12px; }
+
+    /* ---------- cards ---------- */
+    #grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(175px, 1fr)); gap: 14px; }
+    .cell { position: relative; }
+    .tile {
+      position: relative; display: block; width: 100%; aspect-ratio: 4 / 3;
+      padding: 0; border: 0; border-radius: 6px; overflow: hidden;
+      color: #fff; text-align: left; cursor: pointer;
+      background: var(--panel-2);
+      outline: 2px solid transparent; outline-offset: 2px;
+      box-shadow: 0 2px 0 rgba(0, 0, 0, .35);
+    }
+    .tile:hover, .tile:focus-visible { outline-color: var(--accent); }
+    .tile img { display: block; width: 100%; height: 100%; object-fit: cover; transition: transform .25s ease; }
+    .tile:hover img { transform: scale(1.04); }
+
+    .tile .cap {
+      position: absolute; left: 0; right: 0; bottom: 0; padding: 26px 10px 8px;
+      background: linear-gradient(transparent, rgba(0, 0, 0, .85));
+      transform: translateY(100%); opacity: 0;
+      transition: transform .18s ease, opacity .18s ease;
+    }
+    .tile:hover .cap, .tile:focus-visible .cap { transform: none; opacity: 1; }
+    .name { display: block; font-weight: 700; font-size: 15px; line-height: 1.25; }
+    .note { display: block; font-size: 12px; opacity: .8; margin-top: 2px; }
+
+    .tile.text { display: flex; flex-direction: column; justify-content: flex-end; padding: 12px; }
+    .tile.text .name { font-size: 19px; font-weight: 800; word-break: break-word; position: relative; }
+    .tile.text .note { position: relative; }
+    .tile.text::after {
+      content: attr(data-letter); position: absolute; top: -8px; right: 8px;
+      font: 900 96px/1 "Trebuchet MS", sans-serif; opacity: .13; pointer-events: none;
+    }
+    .tile.add {
+      display: flex; align-items: center; justify-content: center;
+      background: transparent; border: 2px dashed var(--line); box-shadow: none;
+      color: var(--muted); font-weight: 600; text-align: center;
+    }
+    .tile.add:hover, .tile.add:focus-visible { color: var(--accent); border-color: var(--accent); outline-color: transparent; }
+
+    .mini {
+      width: 28px; height: 28px; padding: 0; line-height: 1; font-size: 15px;
+      color: #fff; background: rgba(0, 0, 0, .6); border: 0; border-radius: 4px; cursor: pointer;
+    }
+    .mini:hover { background: rgba(0, 0, 0, .85); }
+    .star { position: absolute; top: 6px; left: 6px; z-index: 2; opacity: 0; transition: opacity .12s; font-size: 16px; }
+    .cell:hover .star, .star:focus-visible, .star[aria-pressed="true"] { opacity: 1; }
+    .star[aria-pressed="true"] { color: var(--accent); }
+    .acts { position: absolute; top: 6px; right: 6px; z-index: 2; display: flex; gap: 4px; }
+    .mini.del:hover { background: var(--red); }
+    .flag {
+      position: absolute; top: 9px; left: 40px; z-index: 2; pointer-events: none;
+      font-size: 11px; font-weight: 700; padding: 2px 6px; border-radius: 3px;
+      background: var(--red); color: #fff;
+    }
+    @media (hover: none) {
+      .tile .cap { transform: none; opacity: 1; }
+      .star { opacity: 1; }
+    }
+
+    #empty { color: var(--muted); margin: 30px 0; text-align: center; }
+    #status { min-height: 1.5em; margin-top: 22px; color: var(--muted); font-size: 14px; white-space: pre-wrap; }
+    #status.error { color: var(--danger); }
+    #admin-bar {
+      margin-top: 18px; font-size: 13px; color: var(--muted);
+      border-left: 3px solid var(--accent); padding-left: 10px;
+    }
+    #me-id { margin: 28px 0 0; font-size: 11px; color: #5f5e59; }
+    #me-id code { font-family: Consolas, "Courier New", monospace; }
+    .link {
+      color: var(--accent); background: none; border: 0; cursor: pointer; padding: 0; text-decoration: underline;
+    }
+    .link.red { color: var(--danger); }
+    .badge {
+      display: inline-block; min-width: 18px; padding: 0 5px; margin-left: 3px; border-radius: 9px;
+      background: var(--red); color: #fff; font-size: 11px; font-weight: 700; text-align: center; text-decoration: none;
+    }
+    .idchip {
+      font-family: Consolas, "Courier New", monospace; font-size: 12px; padding: 0 5px;
+      border: 1px solid var(--line); border-radius: 3px; background: var(--panel-2); color: var(--text);
+    }
+    .tag { display: inline-block; font-size: 11px; font-weight: 700; padding: 1px 6px; border-radius: 3px; background: var(--panel-2); color: var(--muted); }
+    .tag.red { background: var(--red); color: #fff; }
+    .tag.yellow { background: var(--accent); color: var(--accent-ink); }
+
+    /* ---------- dialogs ---------- */
+    dialog {
+      background: var(--panel); color: var(--text); border: 1px solid var(--line);
+      border-radius: 8px; padding: 22px; width: min(440px, 92vw);
+    }
+    dialog::backdrop { background: rgba(0, 0, 0, .65); }
+    dialog h2 { margin: 0 0 16px; font: 700 19px "Trebuchet MS", "Segoe UI", sans-serif; }
+    p.hint { margin: -8px 0 14px; color: var(--muted); font-size: 13px; }
+    dialog label, .lbl, .pane label { display: block; font-size: 13px; color: var(--muted); margin-bottom: 12px; }
+    .lbl { margin-bottom: 4px; }
+    .opt { color: #6f6e68; }
+    dialog input[type="text"], dialog input[type="password"], dialog textarea,
+    .pane input[type="text"], .pane input[type="search"], .pane textarea {
+      display: block; width: 100%; margin-top: 4px; font: inherit; font-size: 14px; color: var(--text);
+      background: var(--bg); border: 1px solid var(--line); border-radius: 4px; padding: 8px 10px;
+    }
+    dialog textarea, .pane textarea { resize: vertical; }
+    dialog input:focus-visible, dialog textarea:focus-visible,
+    .pane input:focus-visible, .pane textarea:focus-visible { outline: none; border-color: var(--accent); }
+    label.check, label.radio { display: flex !important; gap: 8px; align-items: center; color: var(--text) !important; font-size: 14px !important; margin-bottom: 8px !important; }
+    .radios { display: flex; flex-wrap: wrap; gap: 4px 18px; margin-bottom: 10px; }
+    .field { margin-bottom: 12px; }
+
+    .drop {
+      display: block; margin: 0; padding: 16px 12px; text-align: center; cursor: pointer;
+      font-size: 13px; color: var(--muted);
+      border: 2px dashed var(--line); border-radius: 6px; background: var(--bg);
+    }
+    .drop:hover, .drop.over, .drop:focus-within { border-color: var(--accent); color: var(--text); }
+    .vh { position: absolute; width: 1px; height: 1px; opacity: 0; overflow: hidden; }
+    .preview { display: flex; gap: 12px; align-items: center; }
+    .preview img { width: 104px; aspect-ratio: 4 / 3; object-fit: cover; border-radius: 4px; border: 1px solid var(--line); }
+    .preview span { font-size: 12px; color: var(--muted); }
+
+    .err { color: var(--danger); min-height: 1.3em; margin: 0 0 8px; font-size: 13px; }
+    .row { display: flex; gap: 10px; justify-content: flex-end; }
+    .row button {
+      font-size: 14px; color: var(--text); background: transparent;
+      border: 1px solid var(--line); border-radius: 4px; padding: 7px 16px; cursor: pointer;
+    }
+    .row button:hover { border-color: var(--muted); }
+    .row button.primary { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); font-weight: 700; }
+    .row button.danger { background: var(--red); color: #fff; border-color: var(--red); font-weight: 700; }
+    .row button:disabled { opacity: .6; cursor: wait; }
+
+    /* one-time pop-up (warning / announcement) */
+    #msg-dialog { width: min(420px, 92vw); border-top: 4px solid var(--accent); }
+    #msg-dialog.warning { border-top-color: var(--red); }
+    #msg-tag { margin-bottom: 10px; }
+    #msg-text { white-space: pre-wrap; margin: 0 0 6px; font-size: 15px; word-break: break-word; }
+    #msg-when { display: block; color: var(--muted); font-size: 12px; margin-bottom: 16px; }
+
+    /* ---------- lists (panel) ---------- */
+    .list { list-style: none; margin: 0; padding: 0; }
+    .list li {
+      display: flex; flex-wrap: wrap; gap: 6px 12px; align-items: flex-start;
+      padding: 9px 0; border-bottom: 1px solid var(--line); font-size: 14px;
+    }
+    .list li .what { flex: 1 1 260px; min-width: 0; word-break: break-word; }
+    .list li small { display: block; color: var(--muted); font-size: 12px; margin-top: 2px; }
+    .list li .links { display: flex; gap: 12px; font-size: 13px; white-space: nowrap; }
+    .list .none { color: var(--muted); border: 0; }
+
+    /* ---------- viewer ---------- */
     #viewer { position: fixed; inset: 0; display: flex; flex-direction: column; background: var(--bg); z-index: 5; }
-    #viewer[hidden] { display: none; }
-    .bar { display: flex; align-items: center; gap: 10px; padding: 8px 12px; background: var(--panel); border-bottom: 1px solid var(--line); }
-    .bar .title { font-weight: 600; margin-right: auto; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .bar {
+      display: flex; align-items: center; gap: 8px; padding: 6px 10px;
+      background: #101012; border-bottom: 1px solid var(--line);
+    }
+    .bar .title { font-weight: 600; font-size: 14px; margin-right: auto; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     .bar button {
-      font: inherit; font-size: 0.88rem; color: var(--text); background: transparent;
-      border: 1px solid var(--line); border-radius: 8px; padding: 6px 12px; cursor: pointer;
+      font-size: 13px; color: var(--text); background: transparent;
+      border: 1px solid var(--line); border-radius: 4px; padding: 4px 11px; cursor: pointer; white-space: nowrap;
     }
     .bar button:hover { border-color: var(--accent); }
-    .bar button.close { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); font-weight: 650; }
+    .bar #v-star[aria-pressed="true"] { color: var(--accent); border-color: var(--accent); }
+    .bar #v-report { color: var(--danger); }
+    .bar #v-report:hover { border-color: var(--danger); }
+    .bar button.close { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); font-weight: 700; }
     #stage { flex: 1; min-height: 0; background: #fff; }
     #stage iframe { width: 100%; height: 100%; border: 0; display: block; }
 
-    @media (prefers-reduced-motion: reduce) { .tile { transition: none; } }
+    /* ---------- admin control panel ---------- */
+    #panel { position: fixed; inset: 0; z-index: 6; display: flex; flex-direction: column; background: var(--bg); }
+    #panel .bar .title::before {
+      content: ""; display: inline-block; width: 9px; height: 9px; margin-right: 8px; background: var(--accent);
+    }
+    .panel-body { flex: 1; min-height: 0; display: flex; }
+    .tabs {
+      width: 190px; flex: none; display: flex; flex-direction: column; padding: 10px 0;
+      background: #1c1c20; border-right: 1px solid var(--line);
+    }
+    .tabs button {
+      text-align: left; padding: 9px 18px; background: none; border: 0; border-left: 3px solid transparent;
+      color: var(--muted); cursor: pointer; font-size: 14px;
+    }
+    .tabs button:hover { color: var(--text); }
+    .tabs button[aria-selected="true"] { color: var(--text); background: var(--panel); border-left-color: var(--accent); font-weight: 600; }
+    .panes { flex: 1; min-width: 0; overflow-y: auto; padding: 22px 28px 50px; }
+    .pane { max-width: 760px; }
+    .pane h2 { margin: 0 0 4px; font: 700 21px "Trebuchet MS", "Segoe UI", sans-serif; }
+    .pane > p.lead { margin: 0 0 18px; color: var(--muted); font-size: 13px; }
+    .pane h3 { margin: 22px 0 6px; font-size: 13px; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; }
+    .form-card { background: var(--panel); border: 1px solid var(--line); border-radius: 6px; padding: 16px; }
+    .opt-row { display: flex; gap: 6px; align-items: center; margin-bottom: 6px; }
+    .opt-row input { margin-top: 0 !important; }
+    .opt-row .mini { flex: none; background: var(--panel-2); }
+    .form-foot { display: flex; align-items: center; gap: 12px; margin-top: 12px; }
+    .form-foot .err { margin: 0; flex: 1; }
+    .poll-item { padding: 12px 0; border-bottom: 1px solid var(--line); }
+    .poll-item .head { display: flex; flex-wrap: wrap; gap: 6px 10px; align-items: center; margin-bottom: 8px; }
+    .poll-item .head b { flex: 1 1 240px; }
+
+    /* ---------- banned ---------- */
+    #banned {
+      position: fixed; inset: 0; z-index: 30; background: var(--bg);
+      display: flex; align-items: center; justify-content: center; text-align: center; padding: 20px;
+    }
+    #banned h2 { font: 700 24px "Trebuchet MS", "Segoe UI", sans-serif; margin: 0 0 8px; }
+    #banned p { color: var(--muted); margin: 0 0 6px; }
+
+    /* ---------- toast ---------- */
+    #toast {
+      position: fixed; left: 50%; bottom: 22px; z-index: 40; transform: translateX(-50%) translateY(10px);
+      max-width: 90vw; padding: 9px 16px; border-radius: 4px; font-size: 14px;
+      background: #f0efe9; color: #1b1b1f; box-shadow: 0 4px 14px rgba(0, 0, 0, .4);
+      opacity: 0; pointer-events: none; transition: opacity .18s, transform .18s;
+    }
+    #toast.show { opacity: 1; transform: translateX(-50%); }
+    #toast.error { background: #ffd9d3; color: #5a140c; }
+
+    @media (max-width: 700px) {
+      .panel-body { flex-direction: column; }
+      .tabs { width: auto; flex-direction: row; overflow-x: auto; padding: 0; border-right: 0; border-bottom: 1px solid var(--line); }
+      .tabs button { border-left: 0; border-bottom: 3px solid transparent; white-space: nowrap; }
+      .tabs button[aria-selected="true"] { border-bottom-color: var(--accent); }
+      .panes { padding: 16px 14px 40px; }
+    }
+    @media (max-width: 600px) {
+      .tools { width: 100%; flex-wrap: wrap; }
+      #search { flex: 1; width: auto; }
+      #grid { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 10px; }
+      .bar { flex-wrap: wrap; }
+      .bar .title { flex-basis: 100%; }
+      #panel .bar { flex-wrap: nowrap; }
+      #panel .bar .title { flex-basis: auto; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .tile img, .tile .cap, .star, #toast { transition: none; }
+      .tile:hover img { transform: none; }
+    }
   </style>
 </head>
 <body>
-  <div class="shell">
+  <div class="shell" id="shell">
     <header>
-      <h1>Study Hub</h1>
-      <p>Pick something to open.</p>
+      <div>
+        <h1 id="heading">Study Hub</h1>
+        <p class="sub">Pick something to open.</p>
+      </div>
+      <div class="tools">
+        <input id="search" type="search" placeholder="Search  ( / )" aria-label="Search" autocomplete="off">
+        <button type="button" class="btn" id="request-btn">Request a game</button>
+      </div>
     </header>
+
+    <div id="polls"></div>
+
+    <div class="filters" role="group" aria-label="Show">
+      <button type="button" class="chip" data-view="all" aria-pressed="true">All</button>
+      <button type="button" class="chip" data-view="fav" aria-pressed="false">&#9733; Starred <span id="fav-count"></span></button>
+      <span id="count">Loading&hellip;</span>
+    </div>
+
     <div id="grid" role="list"></div>
+    <p id="empty" hidden></p>
     <div id="status" role="status" aria-live="polite"></div>
+    <div id="admin-bar" hidden>
+      Admin mode is on.
+      <button type="button" class="link" id="panel-btn">Control panel<span class="badge" id="inbox-badge" hidden></span></button>
+      &middot;
+      <button type="button" class="link" id="lock">Lock</button>
+    </div>
+    <p id="me-id">ID <code id="me-id-code"></code></p>
   </div>
 
+  <!-- game viewer -->
   <div id="viewer" hidden>
     <div class="bar">
       <span class="title" id="viewer-title"></span>
+      <button type="button" id="v-star" aria-pressed="false">&#9734; Star</button>
+      <button type="button" id="v-report">Report broken</button>
       <button type="button" id="reload">Reload</button>
       <button type="button" id="full">Fullscreen</button>
       <button type="button" class="close" id="close">Close</button>
@@ -83,21 +379,229 @@
     <div id="stage"></div>
   </div>
 
+  <!-- admin control panel -->
+  <div id="panel" hidden>
+    <div class="bar">
+      <span class="title">Control panel</span>
+      <button type="button" class="close" id="panel-close">Done</button>
+    </div>
+    <div class="panel-body">
+      <nav class="tabs" role="tablist" aria-label="Control panel">
+        <button type="button" role="tab" data-tab="inbox" aria-selected="true">Inbox <span class="badge" id="tab-badge" hidden></span></button>
+        <button type="button" role="tab" data-tab="polls" aria-selected="false">Polls</button>
+        <button type="button" role="tab" data-tab="messages" aria-selected="false">Announcements &amp; warnings</button>
+        <button type="button" role="tab" data-tab="users" aria-selected="false">Users &amp; bans</button>
+      </nav>
+      <div class="panes">
+
+        <section class="pane" id="pane-inbox">
+          <h2>Inbox</h2>
+          <p class="lead">Broken reports and game requests. Each one shows the ID of the device that sent it.</p>
+          <h3>Broken reports</h3>
+          <ul class="list" id="inbox-reports"></ul>
+          <h3>Requests</h3>
+          <ul class="list" id="inbox-requests"></ul>
+          <p class="err" id="inbox-error"></p>
+        </section>
+
+        <section class="pane" id="pane-polls" hidden>
+          <h2>Polls</h2>
+          <p class="lead">Everyone sees open polls at the top of the page. One vote per device, and reopening the page doesn't give another vote.</p>
+          <form class="form-card" id="poll-form" autocomplete="off">
+            <label>Question
+              <input type="text" id="poll-q" maxlength="120" required placeholder="What should we add next?">
+            </label>
+            <span class="lbl">Options</span>
+            <div id="poll-opts"></div>
+            <button type="button" class="link" id="poll-add-opt">+ Add option</button>
+            <div class="form-foot">
+              <p class="err" id="poll-error"></p>
+              <button type="submit" class="btn primary" id="poll-submit">Send poll</button>
+            </div>
+          </form>
+          <h3>Sent polls</h3>
+          <div id="poll-list"></div>
+          <p class="err" id="polls-load-error"></p>
+        </section>
+
+        <section class="pane" id="pane-messages" hidden>
+          <h2>Announcements &amp; warnings</h2>
+          <p class="lead">Each one pops up once per device. If they're not on when you send it, they see it next time they open the site, then never again.</p>
+          <form class="form-card" id="msg-form" autocomplete="off">
+            <span class="lbl">Type</span>
+            <div class="radios">
+              <label class="radio"><input type="radio" name="msg-type" value="announcement" checked> Announcement</label>
+              <label class="radio"><input type="radio" name="msg-type" value="warning"> Warning</label>
+            </div>
+            <span class="lbl">Send to</span>
+            <div class="radios">
+              <label class="radio"><input type="radio" name="msg-to" value="all" checked> Everyone</label>
+              <label class="radio"><input type="radio" name="msg-to" value="one"> One user</label>
+            </div>
+            <label id="msg-id-wrap" hidden>User ID
+              <input type="text" id="msg-id" maxlength="64" placeholder="e.g. a3f9c2">
+            </label>
+            <label>Message
+              <textarea id="msg-body" rows="3" maxlength="500" required></textarea>
+            </label>
+            <div class="form-foot">
+              <p class="err" id="msg-error"></p>
+              <button type="submit" class="btn primary" id="msg-submit">Send</button>
+            </div>
+          </form>
+          <h3>Sent</h3>
+          <ul class="list" id="msg-list"></ul>
+          <p class="err" id="msgs-load-error"></p>
+        </section>
+
+        <section class="pane" id="pane-users" hidden>
+          <h2>Users &amp; bans</h2>
+          <p class="lead">No names. Each device gets an ID. People can find theirs at the bottom of the main page.</p>
+          <input type="search" id="user-search" placeholder="Find an ID..." aria-label="Find an ID">
+          <h3 id="users-head">Devices</h3>
+          <ul class="list" id="user-list"></ul>
+          <p class="err" id="users-error"></p>
+        </section>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- banned screen -->
+  <div id="banned" hidden>
+    <div>
+      <h2>You've been banned</h2>
+      <p>This device can't use the site any more.</p>
+      <p id="banned-reason"></p>
+    </div>
+  </div>
+
+  <div id="toast" role="status" aria-live="polite"></div>
+
+  <!-- admin unlock -->
+  <dialog id="key-dialog">
+    <form id="key-form" autocomplete="off">
+      <h2>Unlock</h2>
+      <label>Key
+        <input id="key-input" type="password" autocomplete="off" required>
+      </label>
+      <label class="check"><input type="checkbox" id="key-remember"> Remember on this device</label>
+      <p class="err" id="key-error"></p>
+      <div class="row">
+        <button type="button" id="key-cancel">Cancel</button>
+        <button type="submit" class="primary">Unlock</button>
+      </div>
+    </form>
+  </dialog>
+
+  <!-- add / edit a game (admin) -->
+  <dialog id="add-dialog">
+    <form id="add-form" autocomplete="off">
+      <h2 id="add-title">Add a game</h2>
+      <label>Name
+        <input id="add-name" type="text" maxlength="40" required>
+      </label>
+      <label>Link or embed code
+        <textarea id="add-url" rows="3" maxlength="4000" placeholder="https://... or paste embed code" required></textarea>
+      </label>
+      <label>Note <span class="opt">(optional)</span>
+        <input id="add-note" type="text" maxlength="80">
+      </label>
+      <label>Also allow these sites <span class="opt">(optional)</span>
+        <input id="add-allow" type="text" maxlength="400" placeholder="cdn.example.com, other.com">
+      </label>
+      <div class="field">
+        <span class="lbl">Cover picture <span class="opt">(optional)</span></span>
+        <label class="drop" id="drop">
+          <input type="file" id="add-image" class="vh" accept="image/png,image/jpeg,image/webp,image/gif">
+          <span>Click to pick a picture, or drag / paste one here</span>
+        </label>
+        <div class="preview" id="preview" hidden>
+          <img id="preview-img" alt="Cover preview">
+          <div>
+            <span id="preview-info"></span><br>
+            <button type="button" class="link" id="preview-remove">Remove picture</button>
+          </div>
+        </div>
+      </div>
+      <p class="err" id="add-error"></p>
+      <div class="row">
+        <button type="button" id="add-cancel">Cancel</button>
+        <button type="submit" class="primary" id="add-submit">Add</button>
+      </div>
+    </form>
+  </dialog>
+
+  <!-- request a game (anyone) -->
+  <dialog id="req-dialog">
+    <form id="req-form" autocomplete="off">
+      <h2>Request a game</h2>
+      <p class="hint">Can't find something? Ask for it here.</p>
+      <label>Game name
+        <input id="req-name" type="text" maxlength="40" required>
+      </label>
+      <label>Link <span class="opt">(if you have one)</span>
+        <input id="req-link" type="text" maxlength="500" placeholder="https://...">
+      </label>
+      <label>Anything else? <span class="opt">(optional)</span>
+        <textarea id="req-note" rows="2" maxlength="200"></textarea>
+      </label>
+      <p class="err" id="req-error"></p>
+      <div class="row">
+        <button type="button" id="req-cancel">Cancel</button>
+        <button type="submit" class="primary" id="req-submit">Send</button>
+      </div>
+    </form>
+  </dialog>
+
+  <!-- report a broken game (anyone) -->
+  <dialog id="rep-dialog">
+    <form id="rep-form" autocomplete="off">
+      <h2>Report broken</h2>
+      <p class="hint" id="rep-game"></p>
+      <label class="radio"><input type="radio" name="rep-reason" value="Won't load" checked> Won't load</label>
+      <label class="radio"><input type="radio" name="rep-reason" value="Loads but can't play"> Loads but can't play</label>
+      <label class="radio"><input type="radio" name="rep-reason" value="Wrong game / wrong picture"> Wrong game or wrong picture</label>
+      <label class="radio"><input type="radio" name="rep-reason" value="Other"> Something else</label>
+      <label style="margin-top:12px">More detail <span class="opt">(optional)</span>
+        <textarea id="rep-details" rows="2" maxlength="300"></textarea>
+      </label>
+      <p class="err" id="rep-error"></p>
+      <div class="row">
+        <button type="button" id="rep-cancel">Cancel</button>
+        <button type="submit" class="primary" id="rep-submit">Send report</button>
+      </div>
+    </form>
+  </dialog>
+
+  <!-- admin: warn / message / ban one device -->
+  <dialog id="act-dialog">
+    <form id="act-form" autocomplete="off">
+      <h2 id="act-title"></h2>
+      <p class="hint" id="act-hint"></p>
+      <label><span id="act-label"></span>
+        <textarea id="act-text" rows="3" maxlength="500"></textarea>
+      </label>
+      <p class="err" id="act-error"></p>
+      <div class="row">
+        <button type="button" id="act-cancel">Cancel</button>
+        <button type="submit" class="primary" id="act-submit"></button>
+      </div>
+    </form>
+  </dialog>
+
+  <!-- one-time pop-up shown to users -->
+  <dialog id="msg-dialog">
+    <div id="msg-tag" class="tag"></div>
+    <p id="msg-text"></p>
+    <small id="msg-when"></small>
+    <div class="row">
+      <button type="button" class="primary" id="msg-ok">OK</button>
+    </div>
+  </dialog>
+
   <script>
     'use strict';
-
-    // ---------------------------------------------------------------
-    // YOUR BUTTONS. Edit this list: one entry per button.
-    // name: label on the button   url: full address (https://...)
-    // note: short line under the name (optional)
-    // These three are only SAMPLES. Replace them with your own sites.
-    // ---------------------------------------------------------------
-    const SITES = [
-      { name: 'DuckDuckGo', url: 'https://duckduckgo.com/', note: 'Search' },
-      { name: 'Wikipedia', url: 'https://www.wikipedia.org/', note: 'Encyclopedia' },            
-      { name: 'poop', url: '<embed type="text/plain" width="1280" height="720" src="https://nettleweb.com/#/games/lhf6jyzb?hidegui=1" />', note: 'Search' },
-      { name: 'Chess.com', url: 'https://www.chess.com/', note: 'Play chess' },
-    ];
 
     // ---- Proxy setup: mirrors the stock Scramjet-App public/index.js ----
     const { ScramjetController } = $scramjetLoadController();
@@ -130,26 +634,450 @@
       return ready;
     }
 
-    // ---- UI ----
-    const grid = document.getElementById('grid');
-    const statusEl = document.getElementById('status');
-    const viewer = document.getElementById('viewer');
-    const viewerTitle = document.getElementById('viewer-title');
-    const stage = document.getElementById('stage');
-    let current = null; // { frame, url }
+    // ---- Small helpers ----
+    const $ = (id) => document.getElementById(id);
+    function el(tag, cls, text) {
+      const e = document.createElement(tag);
+      if (cls) e.className = cls;
+      if (text !== undefined) e.textContent = text;
+      return e;
+    }
+    function loadJSON(name, fallback) {
+      try { const v = JSON.parse(localStorage.getItem(name)); return v == null ? fallback : v; }
+      catch (_) { return fallback; }
+    }
+    function saveJSON(name, value) {
+      try { localStorage.setItem(name, JSON.stringify(value)); } catch (_) { /* storage unavailable */ }
+    }
+    function when(at) {
+      const d = new Date(at);
+      return isNaN(d) ? '' : d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }) +
+        ' ' + d.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+    }
+    function actionLink(text, fn, red) {
+      const b = el('button', red ? 'link red' : 'link', text);
+      b.type = 'button';
+      b.addEventListener('click', fn);
+      return b;
+    }
+
+    // ---- Anonymous device ID ----
+    // Kept in localStorage and a cookie, so closing and reopening the about:blank tab keeps the
+    // same ID. The cookie also goes with the /wisp/ connection, so the server can block banned
+    // devices from the games as well.
+    const ID_RE = /^[a-f0-9]{16,64}$/;
+    function readCookie(name) {
+      const m = document.cookie.match(new RegExp('(?:^|; )' + name + '=([^;]*)'));
+      return m ? decodeURIComponent(m[1]) : '';
+    }
+    function makeId() {
+      const bytes = new Uint8Array(16);
+      crypto.getRandomValues(bytes);
+      return Array.from(bytes, (b) => b.toString(16).padStart(2, '0')).join('');
+    }
+    const deviceId = (() => {
+      let id = '';
+      try { id = localStorage.getItem('sh.id') || ''; } catch (_) { /* ignore */ }
+      if (!ID_RE.test(id)) id = readCookie('sh_id');
+      if (!ID_RE.test(id)) id = makeId();
+      try { localStorage.setItem('sh.id', id); } catch (_) { /* ignore */ }
+      document.cookie = 'sh_id=' + id + '; path=/; max-age=31536000; SameSite=Lax' +
+        (location.protocol === 'https:' ? '; Secure' : '');
+      return id;
+    })();
+    const shortId = (id) => String(id || '').slice(0, 6);
+    $('me-id-code').textContent = shortId(deviceId);
+
+    // ---- Elements ----
+    const grid = $('grid');
+    const statusEl = $('status');
+    const emptyEl = $('empty');
+    const countEl = $('count');
+    const searchEl = $('search');
+    const viewer = $('viewer');
+    const viewerTitle = $('viewer-title');
+    const stage = $('stage');
+    const adminBar = $('admin-bar');
+    const panel = $('panel');
+    const keyDialog = $('key-dialog');
+    const addDialog = $('add-dialog');
+    const reqDialog = $('req-dialog');
+    const repDialog = $('rep-dialog');
+    const actDialog = $('act-dialog');
+    const msgDialog = $('msg-dialog');
+
+    let games = [];
+    let loaded = false;
+    let adminKey = '';
+    let isAdmin = false;
+    let isBanned = false;
+    let current = null;          // { frame, url, game }
+    let view = 'all';            // 'all' | 'fav'
+    let inbox = { requests: [], reports: [] };
+    let inboxReady = false;
 
     function setStatus(text, isError) {
       statusEl.textContent = text;
       statusEl.classList.toggle('error', Boolean(isError));
     }
 
-    function isWebUrl(value) {
+    let toastTimer = null;
+    function toast(text, isError) {
+      const t = $('toast');
+      t.textContent = text;
+      t.classList.toggle('error', Boolean(isError));
+      t.classList.add('show');
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => t.classList.remove('show'), 3200);
+    }
+
+    // ---- Server API ----
+    async function api(path, { method = 'GET', body, key } = {}) {
+      const headers = { 'X-Device-Id': deviceId };
+      if (key) headers['X-Admin-Key'] = key;
+      if (body !== undefined) headers['Content-Type'] = 'application/json';
+      let res;
       try {
-        const u = new URL(value);
-        return u.protocol === 'https:' || u.protocol === 'http:';
+        res = await fetch(path, {
+          method,
+          headers,
+          body: body === undefined ? undefined : JSON.stringify(body),
+        });
       } catch (_) {
-        return false;
+        return { ok: false, status: 0, data: { error: 'Could not reach the server.' } };
       }
+      let data = null;
+      try { data = await res.json(); } catch (_) { /* no body */ }
+      if (res.status === 403 && data && data.banned) showBanned(data.reason);
+      return { ok: res.ok, status: res.status, data };
+    }
+
+    function errorText(res, fallback) {
+      if (res.status === 404 || res.status === 405) return "The server isn't set up for this yet.";
+      return (res.data && res.data.error) || fallback;
+    }
+
+    // 401/429 on an admin call: drop admin mode. Returns true if it did.
+    function handleLocked(res) {
+      if (res.status !== 401 && res.status !== 429) return false;
+      [addDialog, actDialog].forEach((d) => d.open && d.close());
+      closePanel();
+      forgetKey();
+      setAdmin(false, '');
+      setStatus((res.data && res.data.error) || 'Locked.', true);
+      return true;
+    }
+
+    // ---- Admin key storage (the real check is always on the server) ----
+    const KEY_NAME = 'sh.k';
+    function readSavedKey() {
+      try { return sessionStorage.getItem(KEY_NAME) || localStorage.getItem(KEY_NAME) || ''; }
+      catch (_) { return ''; }
+    }
+    function saveKey(key, remember) {
+      try {
+        sessionStorage.setItem(KEY_NAME, key);
+        if (remember) localStorage.setItem(KEY_NAME, key);
+      } catch (_) { /* storage unavailable */ }
+    }
+    function forgetKey() {
+      try { sessionStorage.removeItem(KEY_NAME); localStorage.removeItem(KEY_NAME); }
+      catch (_) { /* storage unavailable */ }
+    }
+
+    function setAdmin(on, key) {
+      isAdmin = on;
+      adminKey = on ? key : '';
+      adminBar.hidden = !on;
+      if (on) loadInbox();
+      else { inbox = { requests: [], reports: [] }; inboxReady = false; updateBadge(); closePanel(); }
+      render();
+    }
+
+    // ---- Banned ----
+    function showBanned(reason) {
+      if (isBanned) return;
+      isBanned = true;
+      closeViewer();
+      document.querySelectorAll('dialog[open]').forEach((d) => d.close());
+      msgQueue.length = 0;
+      $('shell').hidden = true;
+      panel.hidden = true;
+      $('banned-reason').textContent = reason ? 'Reason: ' + reason : '';
+      $('banned').hidden = false;
+    }
+
+    // ---- Favourites (saved on this device) ----
+    const FAV_NAME = 'sh.fav';
+    const favs = new Set(loadJSON(FAV_NAME, []).map(String));
+    function isFav(game) { return favs.has(String(game.id)); }
+    function toggleFav(game) {
+      const id = String(game.id);
+      if (favs.has(id)) favs.delete(id); else favs.add(id);
+      saveJSON(FAV_NAME, [...favs]);
+      render();
+      if (current && current.game.id === game.id) syncViewerStar();
+    }
+    function pruneFavs() {
+      const ids = new Set(games.map((g) => String(g.id)));
+      let changed = false;
+      favs.forEach((id) => { if (!ids.has(id)) { favs.delete(id); changed = true; } });
+      if (changed) saveJSON(FAV_NAME, [...favs]);
+    }
+
+    // ---- Cards (text only, never innerHTML) ----
+    const PALETTE = ['#3b5b7a', '#6a4c86', '#8c4438', '#3f7352', '#87672b', '#2e6b75', '#7a4d63', '#55606e'];
+    function colourFor(name) {
+      let h = 0;
+      for (let i = 0; i < name.length; i++) h = (h * 31 + name.charCodeAt(i)) >>> 0;
+      return PALETTE[h % PALETTE.length];
+    }
+    function isUsableImage(src) {
+      return typeof src === 'string' &&
+        (/^data:image\/(png|jpe?g|webp|gif);base64,/i.test(src) || /^https:\/\//i.test(src));
+    }
+
+    function makeTextCard(tile, game) {
+      tile.textContent = '';
+      tile.className = 'tile text';
+      tile.style.background = colourFor(game.name);
+      tile.dataset.letter = game.name.trim().charAt(0).toUpperCase();
+      tile.appendChild(el('span', 'name', game.name));
+      if (game.note) tile.appendChild(el('span', 'note', game.note));
+    }
+
+    function makeTile(game) {
+      const tile = el('button', 'tile');
+      tile.type = 'button';
+      tile.setAttribute('aria-label', game.note ? game.name + ', ' + game.note : game.name);
+      if (isUsableImage(game.image)) {
+        const img = el('img');
+        img.alt = '';
+        img.loading = 'lazy';
+        img.decoding = 'async';
+        img.addEventListener('error', () => makeTextCard(tile, game)); // broken picture, fall back
+        img.src = game.image;
+        const cap = el('span', 'cap');
+        cap.appendChild(el('span', 'name', game.name));
+        if (game.note) cap.appendChild(el('span', 'note', game.note));
+        tile.append(img, cap);
+      } else {
+        makeTextCard(tile, game);
+      }
+      tile.addEventListener('click', () => openSite(game));
+      return tile;
+    }
+
+    function render() {
+      grid.textContent = '';
+      const q = searchEl.value.trim().toLowerCase();
+      let list = view === 'fav' ? games.filter(isFav) : games;
+      if (q) list = list.filter((g) => (g.name + ' ' + (g.note || '')).toLowerCase().includes(q));
+      const reported = isAdmin ? new Set(inbox.reports.map((r) => String(r.gameId))) : new Set();
+
+      list.forEach((game) => {
+        const cell = el('div', 'cell');
+        cell.setAttribute('role', 'listitem');
+        cell.appendChild(makeTile(game));
+
+        const star = el('button', 'mini star', isFav(game) ? '★' : '☆');
+        star.type = 'button';
+        star.setAttribute('aria-pressed', String(isFav(game)));
+        star.setAttribute('aria-label', (isFav(game) ? 'Unstar ' : 'Star ') + game.name);
+        star.title = isFav(game) ? 'Unstar' : 'Star';
+        star.addEventListener('click', () => toggleFav(game));
+        cell.appendChild(star);
+
+        if (isAdmin) {
+          const acts = el('div', 'acts');
+          const edit = el('button', 'mini', '✎');
+          edit.type = 'button';
+          edit.title = 'Edit';
+          edit.setAttribute('aria-label', 'Edit ' + game.name);
+          edit.addEventListener('click', () => openGameDialog(game));
+          const del = el('button', 'mini del', '×');
+          del.type = 'button';
+          del.title = 'Remove';
+          del.setAttribute('aria-label', 'Remove ' + game.name);
+          del.addEventListener('click', () => removeGame(game));
+          acts.append(edit, del);
+          cell.appendChild(acts);
+          if (reported.has(String(game.id))) cell.appendChild(el('span', 'flag', 'Reported'));
+        }
+        grid.appendChild(cell);
+      });
+
+      if (isAdmin && view === 'all' && !q) {
+        const cell = el('div', 'cell');
+        cell.setAttribute('role', 'listitem');
+        const add = el('button', 'tile add', '+ Add game');
+        add.type = 'button';
+        add.addEventListener('click', () => openGameDialog(null));
+        cell.appendChild(add);
+        grid.appendChild(cell);
+      }
+
+      const favTotal = games.filter(isFav).length;
+      $('fav-count').textContent = favTotal ? '(' + favTotal + ')' : '';
+
+      if (!loaded) return;
+      const pool = view === 'fav' ? favTotal : games.length;
+      countEl.textContent = q ? list.length + ' of ' + pool : pool + (pool === 1 ? ' game' : ' games');
+
+      let msg = '';
+      if (q && !list.length) msg = 'Nothing called "' + searchEl.value.trim() + '".';
+      else if (view === 'fav' && !favTotal) msg = 'No starred games yet. Hover over a card and click the ☆ to keep it here.';
+      else if (!games.length && !isAdmin) msg = 'Nothing here yet.';
+      emptyEl.textContent = msg;
+      emptyEl.hidden = !msg;
+    }
+
+    async function loadGames() {
+      const res = await api('/api/games');
+      if (isBanned) return;
+      if (!res.ok || !res.data || !Array.isArray(res.data.games)) {
+        countEl.textContent = '';
+        setStatus('Could not load the list.', true);
+        return;
+      }
+      games = res.data.games;
+      loaded = true;
+      pruneFavs();
+      setStatus('');
+      render();
+    }
+
+    searchEl.addEventListener('input', render);
+    document.querySelectorAll('.chip').forEach((chip) => {
+      chip.addEventListener('click', () => {
+        view = chip.dataset.view;
+        document.querySelectorAll('.chip').forEach((c) => c.setAttribute('aria-pressed', String(c === chip)));
+        render();
+      });
+    });
+
+    // ---- Check-in: polls, one-time pop-ups, ban status ----
+    const SEEN_NAME = 'sh.seen';
+    const VOTES_NAME = 'sh.votes';
+    const seen = new Set(loadJSON(SEEN_NAME, []).map(String));
+    const myVotes = loadJSON(VOTES_NAME, {});
+    const msgQueue = [];
+    let polls = [];
+
+    async function checkIn() {
+      if (isBanned) return;
+      const res = await api('/api/me');
+      if (isBanned || !res.ok || !res.data) return; // not set up yet: stay quiet
+      if (res.data.banned) { showBanned(res.data.reason); return; }
+
+      polls = (Array.isArray(res.data.polls) ? res.data.polls : []).filter((p) => p && !p.closed);
+      renderPolls();
+
+      const fresh = (Array.isArray(res.data.messages) ? res.data.messages : [])
+        .filter((m) => m && !seen.has(String(m.id)) && !msgQueue.some((q) => q.id === m.id));
+      fresh.sort((a, b) => (a.type === 'warning' ? 0 : 1) - (b.type === 'warning' ? 0 : 1));
+      msgQueue.push(...fresh);
+      showNextMessage();
+    }
+
+    function markSeen(id) {
+      seen.add(String(id));
+      saveJSON(SEEN_NAME, [...seen].slice(-300));
+      api('/api/me/seen', { method: 'POST', body: { ids: [id] } });
+    }
+
+    function showNextMessage() {
+      if (isBanned || msgDialog.open || !msgQueue.length) return;
+      const m = msgQueue.shift();
+      markSeen(m.id); // counted as seen the moment it pops up, so it never shows again
+      const warning = m.type === 'warning';
+      msgDialog.classList.toggle('warning', warning);
+      $('msg-tag').textContent = warning ? 'Warning' : 'Announcement';
+      $('msg-tag').className = 'tag ' + (warning ? 'red' : 'yellow');
+      $('msg-text').textContent = m.text || '';
+      $('msg-when').textContent = when(m.at);
+      msgDialog.showModal();
+    }
+    $('msg-ok').addEventListener('click', () => msgDialog.close());
+    msgDialog.addEventListener('close', () => setTimeout(showNextMessage, 200));
+
+    function votedFor(poll) {
+      if (poll.voted != null) return poll.voted;
+      return myVotes[poll.id] != null ? myVotes[poll.id] : null;
+    }
+
+    function resultRows(poll, mine) {
+      const box = el('div');
+      const counts = poll.options.map((o) => Number(o.votes) || 0);
+      const total = counts.reduce((a, b) => a + b, 0);
+      const hasCounts = poll.options.some((o) => typeof o.votes === 'number');
+      poll.options.forEach((o, i) => {
+        const row = el('div', 'result' + (String(o.id) === String(mine) ? ' mine' : ''));
+        const pct = total ? Math.round((counts[i] / total) * 100) : 0;
+        if (hasCounts) {
+          const fill = el('div', 'fill');
+          fill.style.width = pct + '%';
+          row.appendChild(fill);
+        }
+        row.appendChild(el('span', '', (String(o.id) === String(mine) ? '✓ ' : '') + o.text));
+        if (hasCounts) row.appendChild(el('span', 'pct', counts[i] + ' · ' + pct + '%'));
+        box.appendChild(row);
+      });
+      box.appendChild(el('small', '', hasCounts ? total + (total === 1 ? ' vote' : ' votes') : 'Thanks, your vote is in.'));
+      return box;
+    }
+
+    function renderPolls() {
+      const wrap = $('polls');
+      wrap.textContent = '';
+      polls.forEach((poll) => {
+        if (!poll || !Array.isArray(poll.options)) return;
+        const card = el('div', 'pollbox');
+        card.appendChild(el('div', 'kicker', 'Poll'));
+        card.appendChild(el('div', 'q', poll.question));
+        const mine = votedFor(poll);
+        if (mine != null) {
+          card.appendChild(resultRows(poll, mine));
+        } else {
+          const opts = el('div', 'opts');
+          poll.options.forEach((o) => {
+            const b = el('button', 'btn small', o.text);
+            b.type = 'button';
+            b.addEventListener('click', () => vote(poll, o, opts));
+            opts.appendChild(b);
+          });
+          card.appendChild(opts);
+        }
+        wrap.appendChild(card);
+      });
+    }
+
+    async function vote(poll, option, opts) {
+      opts.querySelectorAll('button').forEach((b) => { b.disabled = true; });
+      const res = await api('/api/polls/' + encodeURIComponent(poll.id) + '/vote', {
+        method: 'POST',
+        body: { optionId: option.id },
+      });
+      if (res.ok || res.status === 409) {
+        const chosen = (res.status === 409 && res.data && res.data.voted != null) ? res.data.voted : option.id;
+        myVotes[poll.id] = chosen;
+        saveJSON(VOTES_NAME, myVotes);
+        const updated = res.data && res.data.poll;
+        polls = polls.map((p) => (p.id === poll.id ? Object.assign({}, updated || p, { voted: chosen }) : p));
+        renderPolls();
+        toast(res.ok ? 'Vote counted.' : 'You already voted on this one.');
+      } else {
+        opts.querySelectorAll('button').forEach((b) => { b.disabled = false; });
+        toast(errorText(res, 'Could not send your vote.'), true);
+      }
+    }
+
+    // ---- Viewer ----
+    function syncViewerStar() {
+      const on = current && isFav(current.game);
+      const b = $('v-star');
+      b.setAttribute('aria-pressed', String(Boolean(on)));
+      b.textContent = on ? '★ Starred' : '☆ Star';
     }
 
     function closeViewer() {
@@ -162,6 +1090,7 @@
     }
 
     async function openSite(site) {
+      if (isBanned) return;
       setStatus('Loading ' + site.name + '...');
       try {
         await prepareProxy();
@@ -174,51 +1103,715 @@
       frame.frame.title = site.name;
       stage.appendChild(frame.frame);
       frame.frame.addEventListener('load', () => attachPanicKey(frame.frame));
-      current = { frame, url: site.url };
+      current = { frame, url: site.url, game: site };
       viewerTitle.textContent = site.name;
+      syncViewerStar();
       viewer.hidden = false;
       setStatus('');
       frame.go(site.url);
     }
 
-    SITES.forEach((site) => {
-      if (!isWebUrl(site.url)) {
-        console.warn('Skipping entry with a bad url:', site);
+    $('v-star').addEventListener('click', () => { if (current) toggleFav(current.game); });
+    $('v-report').addEventListener('click', () => { if (current) openReport(current.game); });
+
+    // ---- Admin: unlock (click the heading 5 times), lock ----
+    let clicks = [];
+    $('heading').addEventListener('click', () => {
+      const t = Date.now();
+      clicks = clicks.filter((c) => t - c < 3000);
+      clicks.push(t);
+      if (clicks.length >= 5 && !isAdmin) {
+        clicks = [];
+        $('key-error').textContent = '';
+        $('key-input').value = '';
+        keyDialog.showModal();
+        $('key-input').focus();
+      }
+    });
+
+    $('key-cancel').addEventListener('click', () => keyDialog.close());
+    $('key-form').addEventListener('submit', async (event) => {
+      event.preventDefault();
+      const key = $('key-input').value;
+      const res = await api('/api/admin/check', { method: 'POST', key });
+      if (!res.ok) {
+        $('key-error').textContent = (res.data && res.data.error) || 'Could not check the key.';
         return;
       }
-      const tile = document.createElement('button');
-      tile.type = 'button';
-      tile.className = 'tile';
-      tile.setAttribute('role', 'listitem');
+      saveKey(key, $('key-remember').checked);
+      keyDialog.close();
+      setAdmin(true, key);
+    });
 
-      const name = document.createElement('span');
-      name.className = 'name';
-      name.textContent = site.name;
-      tile.appendChild(name);
+    $('lock').addEventListener('click', () => {
+      forgetKey();
+      setAdmin(false, '');
+    });
 
-      if (site.note) {
-        const note = document.createElement('span');
-        note.className = 'note';
-        note.textContent = site.note;
-        tile.appendChild(note);
+    // ---- Cover picture: pick, drag or paste; shrunk to a small JPEG before upload ----
+    const COVER_W = 480, COVER_H = 360;
+    const MAX_CHARS = 70000;
+    let pendingImage = '';
+    let imageChanged = false;
+
+    function loadImage(file) {
+      return new Promise((resolve, reject) => {
+        const url = URL.createObjectURL(file);
+        const img = new Image();
+        img.onload = () => { URL.revokeObjectURL(url); resolve(img); };
+        img.onerror = () => { URL.revokeObjectURL(url); reject(new Error('Could not read that picture.')); };
+        img.src = url;
+      });
+    }
+
+    async function toCover(file) {
+      if (!file || !/^image\//.test(file.type)) throw new Error('That file is not a picture.');
+      if (file.size > 15 * 1024 * 1024) throw new Error('That picture is too big (15 MB max).');
+      const img = await loadImage(file);
+      const canvas = document.createElement('canvas');
+      canvas.width = COVER_W;
+      canvas.height = COVER_H;
+      const ctx = canvas.getContext('2d');
+      const scale = Math.max(COVER_W / img.naturalWidth, COVER_H / img.naturalHeight);
+      const sw = COVER_W / scale, sh = COVER_H / scale;
+      const sx = (img.naturalWidth - sw) / 2, sy = (img.naturalHeight - sh) / 2;
+      ctx.fillStyle = '#2a2a31';
+      ctx.fillRect(0, 0, COVER_W, COVER_H);
+      ctx.drawImage(img, sx, sy, sw, sh, 0, 0, COVER_W, COVER_H);
+      let quality = 0.82, data;
+      do {
+        data = canvas.toDataURL('image/jpeg', quality);
+        quality -= 0.12;
+      } while (data.length > MAX_CHARS && quality > 0.3);
+      if (data.length > MAX_CHARS) throw new Error('Could not make that picture small enough.');
+      return data;
+    }
+
+    function showPreview(src, info) {
+      pendingImage = src;
+      $('preview-img').src = src;
+      $('preview-info').textContent = info;
+      $('preview').hidden = false;
+      $('drop').hidden = true;
+    }
+    function clearPreview() {
+      pendingImage = '';
+      $('add-image').value = '';
+      $('preview-img').removeAttribute('src');
+      $('preview').hidden = true;
+      $('drop').hidden = false;
+    }
+    async function useFile(file) {
+      $('add-error').textContent = '';
+      try {
+        const data = await toCover(file);
+        showPreview(data, 'New cover (' + Math.round(data.length * 0.75 / 1024) + ' KB)');
+        imageChanged = true;
+      } catch (err) {
+        $('add-error').textContent = err.message;
+      }
+    }
+
+    $('add-image').addEventListener('change', (e) => { if (e.target.files[0]) useFile(e.target.files[0]); });
+    $('preview-remove').addEventListener('click', () => { clearPreview(); imageChanged = true; });
+
+    const drop = $('drop');
+    ['dragenter', 'dragover'].forEach((t) => drop.addEventListener(t, (e) => {
+      e.preventDefault();
+      drop.classList.add('over');
+    }));
+    ['dragleave', 'drop'].forEach((t) => drop.addEventListener(t, () => drop.classList.remove('over')));
+    drop.addEventListener('drop', (e) => {
+      e.preventDefault();
+      const file = e.dataTransfer && e.dataTransfer.files[0];
+      if (file) useFile(file);
+    });
+    addDialog.addEventListener('dragover', (e) => e.preventDefault());
+    addDialog.addEventListener('drop', (e) => e.preventDefault());
+    addDialog.addEventListener('paste', (e) => {
+      const items = e.clipboardData ? Array.from(e.clipboardData.items) : [];
+      const item = items.find((i) => i.kind === 'file' && i.type.startsWith('image/'));
+      if (!item) return;
+      e.preventDefault();
+      useFile(item.getAsFile());
+    });
+
+    // ---- Add / edit a game ----
+    let editing = null;
+    let fromRequestId = null;
+
+    function allowText(allow) {
+      if (Array.isArray(allow)) return allow.join(', ');
+      return typeof allow === 'string' ? allow : '';
+    }
+
+    function openGameDialog(game, prefill) {
+      editing = game || null;
+      fromRequestId = (prefill && prefill.requestId) || null;
+      $('add-form').reset();
+      clearPreview();
+      imageChanged = false;
+      $('add-error').textContent = '';
+      $('add-title').textContent = game ? 'Edit ' + game.name : 'Add a game';
+      $('add-submit').textContent = game ? 'Save' : 'Add';
+      const src = game || prefill || {};
+      $('add-name').value = src.name || '';
+      $('add-url').value = src.url || '';
+      $('add-note').value = src.note || '';
+      $('add-allow').value = allowText(src.allow);
+      if (game && isUsableImage(game.image)) showPreview(game.image, 'Current cover');
+      addDialog.showModal();
+      $('add-name').focus();
+    }
+
+    $('add-cancel').addEventListener('click', () => addDialog.close());
+    $('add-form').addEventListener('submit', async (event) => {
+      event.preventDefault();
+      const submit = $('add-submit');
+      const label = submit.textContent;
+      const name = $('add-name').value.trim();
+      const body = {
+        name,
+        url: $('add-url').value.trim(),
+        note: $('add-note').value.trim(),
+        allow: $('add-allow').value.trim(),
+      };
+      if (editing) {
+        if (imageChanged) body.image = pendingImage || null;
+      } else if (pendingImage) {
+        body.image = pendingImage;
       }
 
-      const host = document.createElement('span');
-      host.className = 'host';
-      host.textContent = new URL(site.url).hostname;
-      tile.appendChild(host);
+      submit.disabled = true;
+      submit.textContent = editing ? 'Saving...' : 'Adding...';
+      const res = editing
+        ? await api('/api/games/' + encodeURIComponent(editing.id), { method: 'PATCH', key: adminKey, body })
+        : await api('/api/games', { method: 'POST', key: adminKey, body });
+      submit.disabled = false;
+      submit.textContent = label;
 
-      tile.addEventListener('click', () => openSite(site));
-      grid.appendChild(tile);
+      if (handleLocked(res)) return;
+      if (res.status === 413) {
+        $('add-error').textContent = 'The server said the picture is too big.';
+        return;
+      }
+      if (!res.ok) {
+        $('add-error').textContent = errorText(res, editing ? 'Could not save.' : 'Could not add.');
+        return;
+      }
+      const wasEditing = Boolean(editing);
+      addDialog.close();
+      await loadGames();
+      toast(wasEditing ? 'Saved.' : name + ' added.');
+      if (body.image && !games.some((g) => g.name === name && g.image)) {
+        setStatus('Saved, but the server did not keep the picture. It needs updating to save an "image" field.', true);
+      }
+      if (fromRequestId) dismiss('requests', fromRequestId, true);
     });
+
+    async function removeGame(game) {
+      if (!confirm('Remove ' + game.name + '?')) return;
+      const res = await api('/api/games/' + encodeURIComponent(game.id), { method: 'DELETE', key: adminKey });
+      if (handleLocked(res)) return;
+      if (!res.ok) {
+        setStatus(errorText(res, 'Could not remove.'), true);
+        return;
+      }
+      await loadGames();
+    }
+
+    // ---- Request a game (anyone) ----
+    $('request-btn').addEventListener('click', () => {
+      $('req-form').reset();
+      $('req-error').textContent = '';
+      $('req-name').value = searchEl.value.trim();
+      reqDialog.showModal();
+      $('req-name').focus();
+    });
+    $('req-cancel').addEventListener('click', () => reqDialog.close());
+    $('req-form').addEventListener('submit', async (event) => {
+      event.preventDefault();
+      const submit = $('req-submit');
+      submit.disabled = true;
+      const res = await api('/api/requests', {
+        method: 'POST',
+        body: { name: $('req-name').value.trim(), link: $('req-link').value.trim(), note: $('req-note').value.trim() },
+      });
+      submit.disabled = false;
+      if (!res.ok) {
+        $('req-error').textContent = errorText(res, 'Could not send the request.');
+        return;
+      }
+      reqDialog.close();
+      toast('Request sent, thanks.');
+      if (isAdmin) loadInbox();
+    });
+
+    // ---- Report a broken game (anyone; once per game every 12 hours on this device) ----
+    const REP_NAME = 'sh.rep';
+    const REP_GAP = 12 * 60 * 60 * 1000;
+    let reporting = null;
+
+    function openReport(game) {
+      const last = loadJSON(REP_NAME, {})[String(game.id)];
+      if (last && Date.now() - last < REP_GAP) {
+        toast('You already reported this one. Thanks!');
+        return;
+      }
+      reporting = game;
+      $('rep-form').reset();
+      $('rep-error').textContent = '';
+      $('rep-game').textContent = "What's wrong with " + game.name + '?';
+      repDialog.showModal();
+    }
+    $('rep-cancel').addEventListener('click', () => repDialog.close());
+    $('rep-form').addEventListener('submit', async (event) => {
+      event.preventDefault();
+      if (!reporting) return;
+      const submit = $('rep-submit');
+      const reason = (document.querySelector('input[name="rep-reason"]:checked') || {}).value || 'Other';
+      submit.disabled = true;
+      const res = await api('/api/reports', {
+        method: 'POST',
+        body: { gameId: reporting.id, reason, details: $('rep-details').value.trim() },
+      });
+      submit.disabled = false;
+      if (!res.ok) {
+        $('rep-error').textContent = errorText(res, 'Could not send the report.');
+        return;
+      }
+      const seenReports = loadJSON(REP_NAME, {});
+      seenReports[String(reporting.id)] = Date.now();
+      saveJSON(REP_NAME, seenReports);
+      repDialog.close();
+      toast('Report sent, thanks.');
+      if (isAdmin) loadInbox();
+    });
+
+    // =====================================================================
+    //  ADMIN CONTROL PANEL
+    // =====================================================================
+    let panelTab = 'inbox';
+
+    function openPanel(tab) {
+      if (!isAdmin) return;
+      panel.hidden = false;
+      selectTab(tab || panelTab);
+    }
+    function closePanel() { panel.hidden = true; }
+
+    function selectTab(tab) {
+      panelTab = tab;
+      document.querySelectorAll('.tabs button').forEach((b) => b.setAttribute('aria-selected', String(b.dataset.tab === tab)));
+      document.querySelectorAll('.pane').forEach((p) => { p.hidden = p.id !== 'pane-' + tab; });
+      if (tab === 'inbox') { renderInbox(); loadInbox(); }
+      if (tab === 'polls') { renderDraft(); loadAdminPolls(); }
+      if (tab === 'messages') loadAdminMessages();
+      if (tab === 'users') loadUsers();
+    }
+
+    document.querySelectorAll('.tabs button').forEach((b) => b.addEventListener('click', () => selectTab(b.dataset.tab)));
+    $('panel-btn').addEventListener('click', () => openPanel());
+    $('panel-close').addEventListener('click', closePanel);
+
+    // who sent it + warn / ban links
+    function whoChip(id) { return id ? el('span', 'idchip', '#' + shortId(id)) : null; }
+    function userLinks(id, afterBan) {
+      const links = [];
+      if (!id) return links;
+      links.push(actionLink('Warn', () => warnUser(id)));
+      links.push(actionLink('Ban', () => banUser(id, afterBan), true));
+      return links;
+    }
+
+    // generic "type something about one device" dialog
+    let actCfg = null;
+    function openAct(cfg) {
+      actCfg = cfg;
+      $('act-title').textContent = cfg.title;
+      $('act-hint').textContent = cfg.hint || '';
+      $('act-label').textContent = cfg.label;
+      $('act-text').value = '';
+      $('act-text').required = Boolean(cfg.required);
+      $('act-error').textContent = '';
+      const s = $('act-submit');
+      s.textContent = cfg.submit;
+      s.className = cfg.danger ? 'danger' : 'primary';
+      actDialog.showModal();
+      $('act-text').focus();
+    }
+    $('act-cancel').addEventListener('click', () => actDialog.close());
+    $('act-form').addEventListener('submit', async (event) => {
+      event.preventDefault();
+      if (!actCfg) return;
+      const s = $('act-submit');
+      s.disabled = true;
+      const res = await actCfg.run($('act-text').value.trim());
+      s.disabled = false;
+      if (handleLocked(res)) return;
+      if (!res.ok) {
+        $('act-error').textContent = errorText(res, 'That did not work.');
+        return;
+      }
+      const cfg = actCfg;
+      actDialog.close();
+      toast(cfg.done);
+      if (cfg.after) cfg.after();
+    });
+
+    function sendMessage(type, to, text) {
+      return api('/api/admin/messages', { method: 'POST', key: adminKey, body: { type, to, text } });
+    }
+    function warnUser(id) {
+      openAct({
+        title: 'Warn #' + shortId(id),
+        hint: "Pops up once. If they're not on, they'll see it next time they open the site.",
+        label: 'Warning', required: true, submit: 'Send warning', done: 'Warning sent.',
+        run: (text) => sendMessage('warning', id, text),
+        after: () => { if (panelTab === 'messages') loadAdminMessages(); },
+      });
+    }
+    function messageUser(id) {
+      openAct({
+        title: 'Message #' + shortId(id),
+        hint: 'An announcement just for this device. Shows once.',
+        label: 'Message', required: true, submit: 'Send', done: 'Sent.',
+        run: (text) => sendMessage('announcement', id, text),
+        after: () => { if (panelTab === 'messages') loadAdminMessages(); },
+      });
+    }
+    function banUser(id, after) {
+      openAct({
+        title: 'Ban #' + shortId(id) + '?',
+        hint: "They won't be able to use the site or open games on this device. You can unban them later under Users & bans.",
+        label: 'Reason (optional, they will see it)', required: false, danger: true, submit: 'Ban', done: 'Banned.',
+        run: (reason) => api('/api/admin/bans', { method: 'POST', key: adminKey, body: { deviceId: id, reason } }),
+        after: () => { if (after) after(); if (panelTab === 'users') loadUsers(); },
+      });
+    }
+    async function unbanUser(id) {
+      if (!confirm('Unban #' + shortId(id) + '?')) return;
+      const res = await api('/api/admin/bans/' + encodeURIComponent(id), { method: 'DELETE', key: adminKey });
+      if (handleLocked(res)) return;
+      if (!res.ok) { toast(errorText(res, 'Could not unban.'), true); return; }
+      toast('Unbanned.');
+      loadUsers();
+    }
+
+    // ---------- Inbox tab ----------
+    function updateBadge() {
+      const n = inbox.requests.length + inbox.reports.length;
+      [$('inbox-badge'), $('tab-badge')].forEach((b) => { b.textContent = String(n); b.hidden = !n; });
+    }
+
+    async function loadInbox() {
+      if (!isAdmin) return;
+      const res = await api('/api/inbox', { key: adminKey });
+      if (handleLocked(res)) return;
+      if (res.ok && res.data) {
+        inbox = {
+          requests: Array.isArray(res.data.requests) ? res.data.requests : [],
+          reports: Array.isArray(res.data.reports) ? res.data.reports : [],
+        };
+        inboxReady = true;
+        $('inbox-error').textContent = '';
+      } else {
+        inboxReady = false;
+        $('inbox-error').textContent = errorText(res, 'Could not load the inbox.');
+      }
+      updateBadge();
+      render();
+      if (!panel.hidden && panelTab === 'inbox') renderInbox();
+    }
+
+    function inboxItem(mainText, metaBits, deviceId, links) {
+      const li = el('li');
+      const what = el('div', 'what', mainText);
+      const small = el('small');
+      const chip = whoChip(deviceId);
+      if (chip) { small.appendChild(chip); small.appendChild(document.createTextNode(' ')); }
+      small.appendChild(document.createTextNode(metaBits.filter(Boolean).join(' · ')));
+      what.appendChild(small);
+      const box = el('div', 'links');
+      links.forEach((l) => box.appendChild(l));
+      li.append(what, box);
+      return li;
+    }
+
+    function renderInbox() {
+      const reps = $('inbox-reports');
+      const reqs = $('inbox-requests');
+      reps.textContent = '';
+      reqs.textContent = '';
+
+      if (!inbox.reports.length) reps.appendChild(el('li', 'none', inboxReady ? 'No reports.' : '–'));
+      inbox.reports.forEach((r) => {
+        const game = games.find((g) => String(g.id) === String(r.gameId));
+        const links = [];
+        if (game) {
+          links.push(actionLink('Open', () => { closePanel(); openSite(game); }));
+          links.push(actionLink('Edit', () => openGameDialog(game)));
+        }
+        links.push(...userLinks(r.deviceId, () => dismiss('reports', r.id, true)));
+        links.push(actionLink('Dismiss', () => dismiss('reports', r.id)));
+        reps.appendChild(inboxItem(
+          (game ? game.name : (r.gameName || 'Removed game')) + ': ' + (r.reason || 'Broken'),
+          [r.details, when(r.at)], r.deviceId, links));
+      });
+
+      if (!inbox.requests.length) reqs.appendChild(el('li', 'none', inboxReady ? 'No requests.' : '–'));
+      inbox.requests.forEach((r) => {
+        const links = [
+          actionLink('Add it', () => openGameDialog(null, { name: r.name, url: r.link, requestId: r.id })),
+          ...userLinks(r.deviceId, () => dismiss('requests', r.id, true)),
+          actionLink('Dismiss', () => dismiss('requests', r.id)),
+        ];
+        reqs.appendChild(inboxItem(r.name || 'Untitled', [r.link, r.note, when(r.at)], r.deviceId, links));
+      });
+    }
+
+    async function dismiss(kind, id, quiet) {
+      const res = await api('/api/' + kind + '/' + encodeURIComponent(id), { method: 'DELETE', key: adminKey });
+      if (handleLocked(res)) return;
+      if (!res.ok) {
+        if (!quiet) $('inbox-error').textContent = errorText(res, 'Could not dismiss that.');
+        return;
+      }
+      inbox[kind] = inbox[kind].filter((x) => String(x.id) !== String(id));
+      updateBadge();
+      render();
+      if (!panel.hidden && panelTab === 'inbox') renderInbox();
+    }
+
+    // ---------- Polls tab ----------
+    let draft = ['', ''];
+    function renderDraft() {
+      const box = $('poll-opts');
+      box.textContent = '';
+      draft.forEach((value, i) => {
+        const row = el('div', 'opt-row');
+        const input = el('input');
+        input.type = 'text';
+        input.maxLength = 60;
+        input.placeholder = 'Option ' + (i + 1);
+        input.value = value;
+        input.setAttribute('aria-label', 'Option ' + (i + 1));
+        input.addEventListener('input', () => { draft[i] = input.value; });
+        row.appendChild(input);
+        if (draft.length > 2) {
+          const x = el('button', 'mini', '×');
+          x.type = 'button';
+          x.setAttribute('aria-label', 'Remove option ' + (i + 1));
+          x.addEventListener('click', () => { draft.splice(i, 1); renderDraft(); });
+          row.appendChild(x);
+        }
+        box.appendChild(row);
+      });
+      $('poll-add-opt').hidden = draft.length >= 6;
+    }
+    $('poll-add-opt').addEventListener('click', () => {
+      if (draft.length < 6) { draft.push(''); renderDraft(); $('poll-opts').lastChild.firstChild.focus(); }
+    });
+
+    $('poll-form').addEventListener('submit', async (event) => {
+      event.preventDefault();
+      const question = $('poll-q').value.trim();
+      const options = draft.map((o) => o.trim()).filter(Boolean);
+      if (options.length < 2) { $('poll-error').textContent = 'Give it at least two options.'; return; }
+      if (new Set(options.map((o) => o.toLowerCase())).size !== options.length) {
+        $('poll-error').textContent = 'Two of the options are the same.';
+        return;
+      }
+      $('poll-error').textContent = '';
+      $('poll-submit').disabled = true;
+      const res = await api('/api/admin/polls', { method: 'POST', key: adminKey, body: { question, options } });
+      $('poll-submit').disabled = false;
+      if (handleLocked(res)) return;
+      if (!res.ok) { $('poll-error').textContent = errorText(res, 'Could not send the poll.'); return; }
+      $('poll-q').value = '';
+      draft = ['', ''];
+      renderDraft();
+      toast('Poll sent.');
+      loadAdminPolls();
+      checkIn();
+    });
+
+    async function loadAdminPolls() {
+      const list = $('poll-list');
+      const res = await api('/api/admin/polls', { key: adminKey });
+      if (handleLocked(res)) return;
+      list.textContent = '';
+      if (!res.ok || !res.data || !Array.isArray(res.data.polls)) {
+        $('polls-load-error').textContent = errorText(res, 'Could not load polls.');
+        return;
+      }
+      $('polls-load-error').textContent = '';
+      if (!res.data.polls.length) { list.appendChild(el('p', 'poll-meta', 'No polls yet.')); return; }
+      res.data.polls.forEach((p) => {
+        const item = el('div', 'poll-item');
+        const head = el('div', 'head');
+        head.appendChild(el('b', '', p.question));
+        head.appendChild(el('span', 'tag' + (p.closed ? '' : ' yellow'), p.closed ? 'Closed' : 'Open'));
+        head.appendChild(el('span', 'poll-meta', when(p.at)));
+        head.appendChild(actionLink(p.closed ? 'Reopen' : 'Close', () => setPollClosed(p, !p.closed)));
+        head.appendChild(actionLink('Delete', () => deletePoll(p), true));
+        item.appendChild(head);
+        if (Array.isArray(p.options)) item.appendChild(resultRows(p, null));
+        list.appendChild(item);
+      });
+    }
+
+    async function setPollClosed(p, closed) {
+      const res = await api('/api/admin/polls/' + encodeURIComponent(p.id), { method: 'PATCH', key: adminKey, body: { closed } });
+      if (handleLocked(res)) return;
+      if (!res.ok) { toast(errorText(res, 'Could not change the poll.'), true); return; }
+      toast(closed ? 'Poll closed.' : 'Poll reopened.');
+      loadAdminPolls();
+      checkIn();
+    }
+    async function deletePoll(p) {
+      if (!confirm('Delete the poll "' + p.question + '"? The votes go too.')) return;
+      const res = await api('/api/admin/polls/' + encodeURIComponent(p.id), { method: 'DELETE', key: adminKey });
+      if (handleLocked(res)) return;
+      if (!res.ok) { toast(errorText(res, 'Could not delete the poll.'), true); return; }
+      toast('Poll deleted.');
+      loadAdminPolls();
+      checkIn();
+    }
+
+    // ---------- Announcements & warnings tab ----------
+    function msgFormSync() {
+      const type = document.querySelector('input[name="msg-type"]:checked').value;
+      const allRadio = document.querySelector('input[name="msg-to"][value="all"]');
+      if (type === 'warning') {
+        allRadio.disabled = true;
+        document.querySelector('input[name="msg-to"][value="one"]').checked = true;
+      } else {
+        allRadio.disabled = false;
+      }
+      const toOne = document.querySelector('input[name="msg-to"]:checked').value === 'one';
+      $('msg-id-wrap').hidden = !toOne;
+      $('msg-submit').textContent = type === 'warning' ? 'Send warning' : 'Send';
+    }
+    document.querySelectorAll('input[name="msg-type"], input[name="msg-to"]').forEach((r) => r.addEventListener('change', msgFormSync));
+    msgFormSync();
+
+    $('msg-form').addEventListener('submit', async (event) => {
+      event.preventDefault();
+      const type = document.querySelector('input[name="msg-type"]:checked').value;
+      const toOne = document.querySelector('input[name="msg-to"]:checked').value === 'one';
+      const id = $('msg-id').value.trim().replace(/^#/, '').toLowerCase();
+      if (toOne && !/^[a-f0-9]{6,64}$/.test(id)) {
+        $('msg-error').textContent = 'Type the ID shown at the bottom of their page (6 letters/numbers).';
+        return;
+      }
+      $('msg-error').textContent = '';
+      $('msg-submit').disabled = true;
+      const res = await sendMessage(type, toOne ? id : 'all', $('msg-body').value.trim());
+      $('msg-submit').disabled = false;
+      if (handleLocked(res)) return;
+      if (!res.ok) { $('msg-error').textContent = errorText(res, 'Could not send it.'); return; }
+      $('msg-body').value = '';
+      $('msg-id').value = '';
+      toast(type === 'warning' ? 'Warning sent.' : 'Sent.');
+      loadAdminMessages();
+    });
+
+    async function loadAdminMessages() {
+      const list = $('msg-list');
+      const res = await api('/api/admin/messages', { key: adminKey });
+      if (handleLocked(res)) return;
+      list.textContent = '';
+      if (!res.ok || !res.data || !Array.isArray(res.data.messages)) {
+        $('msgs-load-error').textContent = errorText(res, 'Could not load sent messages.');
+        return;
+      }
+      $('msgs-load-error').textContent = '';
+      if (!res.data.messages.length) { list.appendChild(el('li', 'none', 'Nothing sent yet.')); return; }
+      res.data.messages.forEach((m) => {
+        const li = el('li');
+        const what = el('div', 'what');
+        const warning = m.type === 'warning';
+        what.appendChild(el('span', 'tag ' + (warning ? 'red' : 'yellow'), warning ? 'Warning' : 'Announcement'));
+        what.appendChild(document.createTextNode(' ' + (m.text || '')));
+        const small = el('small');
+        small.appendChild(document.createTextNode(m.to === 'all' ? 'To everyone' : 'To '));
+        if (m.to !== 'all') small.appendChild(whoChip(m.to));
+        const bits = [when(m.at)];
+        if (typeof m.seenCount === 'number') bits.push('seen by ' + m.seenCount);
+        small.appendChild(document.createTextNode(' · ' + bits.filter(Boolean).join(' · ')));
+        what.appendChild(small);
+        const links = el('div', 'links');
+        links.appendChild(actionLink('Delete', () => deleteMessage(m), true));
+        li.append(what, links);
+        list.appendChild(li);
+      });
+    }
+
+    async function deleteMessage(m) {
+      if (!confirm("Delete this? Anyone who hasn't seen it yet won't get it.")) return;
+      const res = await api('/api/admin/messages/' + encodeURIComponent(m.id), { method: 'DELETE', key: adminKey });
+      if (handleLocked(res)) return;
+      if (!res.ok) { toast(errorText(res, 'Could not delete it.'), true); return; }
+      loadAdminMessages();
+    }
+
+    // ---------- Users & bans tab ----------
+    let users = [];
+    async function loadUsers() {
+      const res = await api('/api/admin/users', { key: adminKey });
+      if (handleLocked(res)) return;
+      if (!res.ok || !res.data || !Array.isArray(res.data.users)) {
+        users = [];
+        $('users-error').textContent = errorText(res, 'Could not load users.');
+      } else {
+        users = res.data.users.slice().sort((a, b) => String(b.lastSeen || '').localeCompare(String(a.lastSeen || '')));
+        $('users-error').textContent = '';
+      }
+      renderUsers();
+    }
+
+    function renderUsers() {
+      const list = $('user-list');
+      list.textContent = '';
+      const q = $('user-search').value.trim().replace(/^#/, '').toLowerCase();
+      const shown = q ? users.filter((u) => String(u.id).toLowerCase().includes(q)) : users;
+      const bannedCount = users.filter((u) => u.banned).length;
+      $('users-head').textContent = 'Devices (' + users.length + (bannedCount ? ', ' + bannedCount + ' banned' : '') + ')';
+      if (!shown.length) { list.appendChild(el('li', 'none', users.length ? 'No ID matches that.' : 'No devices yet.')); return; }
+      shown.forEach((u) => {
+        const li = el('li');
+        const what = el('div', 'what');
+        what.appendChild(whoChip(u.id));
+        if (String(u.id) === deviceId) what.appendChild(el('span', 'tag', 'you'));
+        if (u.banned) {
+          what.appendChild(document.createTextNode(' '));
+          what.appendChild(el('span', 'tag red', 'Banned'));
+        }
+        const bits = [];
+        if (u.lastSeen) bits.push('last on ' + when(u.lastSeen));
+        if (u.firstSeen) bits.push('first seen ' + when(u.firstSeen));
+        if (u.banned && u.reason) bits.push('reason: ' + u.reason);
+        what.appendChild(el('small', '', bits.join(' · ')));
+        const links = el('div', 'links');
+        links.appendChild(actionLink('Message', () => messageUser(u.id)));
+        links.appendChild(actionLink('Warn', () => warnUser(u.id)));
+        links.appendChild(u.banned
+          ? actionLink('Unban', () => unbanUser(u.id))
+          : actionLink('Ban', () => banUser(u.id), true));
+        li.append(what, links);
+        list.appendChild(li);
+      });
+    }
+    $('user-search').addEventListener('input', renderUsers);
 
     // ---- Shift+Q: leave the launcher and go to PANIC_URL ----
     const PANIC_URL = 'https://classroom.google.com/';
 
-    function isTypingTarget(el) {
-      if (!el || el.nodeType !== 1) return false; // nodeType check works across frames
-      const tag = el.tagName;
-      return el.isContentEditable || tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT';
+    function isTypingTarget(target) {
+      if (!target || target.nodeType !== 1) return false; // nodeType check works across frames
+      const tag = target.tagName;
+      return target.isContentEditable || tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT';
     }
 
     function onPanicKey(event) {
@@ -244,14 +1837,52 @@
 
     window.addEventListener('keydown', onPanicKey);
 
-    document.getElementById('close').addEventListener('click', closeViewer);
-    document.getElementById('reload').addEventListener('click', () => {
+    // "/" jumps to search, Esc closes the panel / open game or clears the search
+    window.addEventListener('keydown', (event) => {
+      if (isBanned || document.querySelector('dialog[open]')) return;
+      if (event.key === 'Escape' && !panel.hidden) {
+        closePanel();
+      } else if (event.key === '/' && viewer.hidden && panel.hidden && !isTypingTarget(event.target)) {
+        event.preventDefault();
+        searchEl.focus();
+      } else if (event.key === 'Escape' && !viewer.hidden) {
+        closeViewer();
+      } else if (event.key === 'Escape' && event.target === searchEl && searchEl.value) {
+        searchEl.value = '';
+        render();
+      }
+    });
+
+    $('close').addEventListener('click', closeViewer);
+    $('reload').addEventListener('click', () => {
       if (current) current.frame.go(current.url);
     });
-    document.getElementById('full').addEventListener('click', () => {
+    $('full').addEventListener('click', () => {
       if (current && current.frame.frame.requestFullscreen) {
         current.frame.frame.requestFullscreen().catch(() => {});
       }
+    });
+
+    // ---- Start ----
+    (async () => {
+      await loadGames();
+      await checkIn();
+      const saved = readSavedKey();
+      if (saved && !isBanned) {
+        const res = await api('/api/admin/check', { method: 'POST', key: saved });
+        if (res.ok) setAdmin(true, saved);
+        else forgetKey();
+      }
+    })();
+
+    // check for new polls, pop-ups and bans every minute while the page is in view
+    setInterval(() => {
+      if (document.visibilityState !== 'visible' || isBanned) return;
+      checkIn();
+      if (isAdmin) loadInbox();
+    }, 60 * 1000);
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'visible') checkIn();
     });
   </script>
 </body>
